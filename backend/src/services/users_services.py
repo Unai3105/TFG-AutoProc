@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from bson import ObjectId
 from pymongo import MongoClient
+import bcrypt
 
 from config.mongo import mongo
 
@@ -71,6 +72,10 @@ def createUserService():
     if email_exists(data['email']):
         return jsonify({'error': 'Email already exists'}), 400
 
+    # Cifrar la contraseña antes de guardar
+    hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+    data['password'] = hashed_password.decode('utf-8')
+
     id = mongo.db.users.insert_one(data).inserted_id
     return jsonify({'message': f'User {id} Created'}), 201
 
@@ -81,9 +86,13 @@ def updateUserService(id):
     if 'name' not in data or 'email' not in data or 'password' not in data:
         return jsonify({'error': 'Missing required fields'}), 400
     else:
-        
-        result = mongo.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
+        # Cifrar la nueva contraseña si es que está siendo actualizada
+        if 'password' in data:
+            hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+            data['password'] = hashed_password.decode('utf-8')
 
+        result = mongo.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
+        
         if result.modified_count:
             return jsonify({'message': f'User {id} updated'})
         else:
@@ -97,3 +106,17 @@ def deleteUserService(id):
         return jsonify({'message': f'User {id} deleted'})
     else:
         return jsonify({'error': f'User {id} not found'}), 404
+    
+@handle_error
+def loginUserService():
+    data = request.json
+    if 'email' not in data or 'password' not in data:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    user = mongo.db.users.find_one({'email': data['email']})
+    if user and bcrypt.checkpw(data['password'].encode('utf-8'), user['password'].encode('utf-8')):
+        return jsonify({
+            'message': f'User {user["_id"]} logged in successfully'
+        })
+    else:
+        return jsonify({'error': 'Invalid email or password'}), 400

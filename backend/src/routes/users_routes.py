@@ -1,6 +1,13 @@
 from flask import Blueprint
 
-from services.users_services import getAllUsersService, getUserService, createUserService, updateUserService, deleteUserService
+from services.users_services import (
+    getAllUsersService,
+    getUserService,
+    createUserService,
+    updateUserService,
+    deleteUserService,
+    loginUserService
+)
 
 # Crear un Blueprint para manejar las rutas de usuarios
 users = Blueprint('users', __name__)
@@ -29,3 +36,8 @@ def updateUser(id):
 @users.route('/<id>', methods=['DELETE'])
 def deleteUser(id):
     return deleteUserService(id)
+
+# Definir la ruta para el inicio de sesión
+@users.route('/login', methods=['POST'])
+def loginUser():
+    return loginUserService()
