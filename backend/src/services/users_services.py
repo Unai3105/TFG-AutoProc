@@ -22,6 +22,10 @@ def handle_error(func):
             return jsonify({'error': str(e)}), 500
     return wrapper
 
+# Comprobar si un email ya existe en la base de datos
+def email_exists(email):
+    return mongo.db.users.find_one({'email': email}) is not None
+
 # 201 - Created
 # 400 - Bad Request
 # 404 - Not Found
@@ -63,9 +67,12 @@ def createUserService():
     data = request.json
     if 'name' not in data or 'email' not in data or 'password' not in data:
         return jsonify({'error': 'Missing required fields'}), 400
-    else:
-        id = mongo.db.users.insert_one(data).inserted_id
-        return jsonify({'message': f'User {id} Created'}), 201
+
+    if email_exists(data['email']):
+        return jsonify({'error': 'Email already exists'}), 400
+
+    id = mongo.db.users.insert_one(data).inserted_id
+    return jsonify({'message': f'User {id} Created'}), 201
 
 # Actualizar información de un usuario dado su id
 @handle_error
@@ -74,7 +81,9 @@ def updateUserService(id):
     if 'name' not in data or 'email' not in data or 'password' not in data:
         return jsonify({'error': 'Missing required fields'}), 400
     else:
+        
         result = mongo.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
+
         if result.modified_count:
             return jsonify({'message': f'User {id} updated'})
         else:

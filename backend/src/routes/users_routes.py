@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint
 
 from services.users_services import getAllUsersService, getUserService, createUserService, updateUserService, deleteUserService
 
