@@ -1,28 +1,26 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
 
-const NoAccountComponent = () => {
-
+const GoToAuthComponent = ({ questionText, linkText, route }) => {
+    
     const navigate = useNavigate();
 
     return (
         <div className="p-mt-4">
             <p align="center" style={{ color: '#888', fontSize: '0.875rem' }}>
-                No tienes una cuenta?{' '}
+                {questionText}{' '}
                 <a
-                    href="#"
                     onClick={(e) => {
                         e.preventDefault();
-                        navigate('/register');
+                        navigate(route);
                     }}
                     style={{ color: '#007ad9', textDecoration: 'underline', cursor: 'pointer' }}
                 >
-                    Registrate aquí
+                    {linkText}
                 </a>
             </p>
         </div>
-    )
-}
+    );
+};
 
-export default NoAccountComponent
+export default GoToAuthComponent;
