@@ -4,7 +4,7 @@ import 'primeicons/primeicons.css';                                // Iconos de 
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import AppRoutes from './routes/App'
+import AppRoutes from './routes/AppRoutes'
 
 import './styles/index.css'
 

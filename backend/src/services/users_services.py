@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from bson import ObjectId
+from flask_jwt_extended import create_access_token
 import bcrypt
 
 from config.mongo import mongo
@@ -17,6 +18,8 @@ def handle_error(func):
 def email_exists(email):
     return mongo.db.users.find_one({'email': email}) is not None
 
+# Códigos de estado HTTP
+# 200: OK
 # 201 - Created
 # 400 - Bad Request
 # 404 - Not Found
@@ -66,8 +69,16 @@ def createUserService():
     hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
     data['password'] = hashed_password.decode('utf-8')
 
+    # Insertar el nuevo usuario en la base de datos
     id = mongo.db.users.insert_one(data).inserted_id
-    return jsonify({'message': f'Usuario {id} creado'}), 201
+
+    # Generar un token JWT para el nuevo usuario
+    access_token = create_access_token(identity=str(id))
+    
+    return jsonify({
+        'message': f'Usuario {id} creado correctamente',
+        'access_token': access_token
+        }), 201
 
 # Actualizar información de un usuario dado su id
 @handle_error
@@ -102,7 +113,7 @@ def deleteUserService(id):
 def loginUserService():
     data = request.json
     if 'email' not in data or 'password' not in data:
-        
+        # Faltan campos requeridos
         return jsonify({'error': 'Faltan campos requeridos'}), 400
 
     # Buscar el usuario por correo electrónico
@@ -114,9 +125,14 @@ def loginUserService():
     
     # Verificar la contraseña
     if bcrypt.checkpw(data['password'].encode('utf-8'), user['password'].encode('utf-8')):
+        # Generar un token JWT
+        access_token = create_access_token(identity=str(user['_id']))
         # La autenticación ha sido exitosa
-        print('inicio de sesion correcto')
-        return jsonify({'message': f'El usuario {user["_id"]} inició sesión correctamente'})
+        print('Inicio de sesion correcto')
+        return jsonify({
+            'message': f'El usuario {user["_id"]} inició sesión correctamente',
+            'access_token': access_token
+        }), 200
     else:
         # La contraseña es incorrecta
         print('contraseña incorrecta')

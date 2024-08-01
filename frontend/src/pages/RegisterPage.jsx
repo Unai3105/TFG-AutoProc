@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { Toast } from 'primereact/toast';
@@ -10,6 +10,7 @@ import NameField from '../components/FormFields/NameField';
 import EmailField from '../components/FormFields/EmailField';
 import PasswordField from '../components/FormFields/PasswordField';
 import SignupService from '../services/SignupService';
+import { AuthContext } from '../context/AuthContext';
 
 const RegisterPage = () => {
 
@@ -18,6 +19,16 @@ const RegisterPage = () => {
     
     // Referencia para el Toast
     const toast = useRef(null);
+
+    // Contexto de autenticación
+    const { setAuth } = useContext(AuthContext);
+
+    // Borrar el token JWT de sessionStorage cuando se monta el componente
+    useEffect(() => {
+        sessionStorage.removeItem('jwt');
+        // Actualizar el estado de autenticación
+        setAuth({ token: null, isAuthenticated: false });
+    }, [setAuth]);
 
     // Expresión regular para validar el nombre
     const nameRegex = /^[a-zA-Z\s]*$/;
@@ -53,7 +64,12 @@ const RegisterPage = () => {
                     password: values.password
                 };
                 const response = await SignupService(userData);
-                console.log('Usuario registrado exitosamente:', response);
+                const { access_token, message } = response;
+
+                // Guardar el token en sessionStorage
+                sessionStorage.setItem('jwt', access_token);
+                // Establecer el estado de autenticación
+                setAuth({ token: access_token, isAuthenticated: true });
 
                 // Mostrar Toast de éxito
                 toast.current.show({ 
@@ -62,6 +78,9 @@ const RegisterPage = () => {
                     detail: 'Te has registrado correctamente', // Detalles del mensaje
                     life: 1500 // Duración en milisegundos
                 });
+
+                // Mostrar el registro de usuario exitoso por consola
+                console.log('Usuario registrado correctamente:', message);
 
                 // Redirigir a /home después de 1.5 segundos tras el registro exitoso
                 setTimeout(() => {

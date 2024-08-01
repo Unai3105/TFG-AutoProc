@@ -11,15 +11,15 @@ const api = axios.create({
     }
 });
 
-// Función para registrar un nuevo usuario
-const SignupService = async (userData) => {
-    try{
-        const response = await api.post('/', userData);
-        
+// Función para iniciar sesión
+const LoginService = async (userData) => {
+    try {
+        const response = await api.post('/login', userData);
+
         return response.data;
-    } catch {
+    } catch (error) {
         throw error;
     }
 };
 
-export default SignupService;
+export default LoginService;
