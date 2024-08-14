@@ -1,37 +1,37 @@
 from flask import Flask
-from dotenv import load_dotenv
 from flask_cors import CORS
-import os
-import certifi
 from flask_jwt_extended import JWTManager
-from datetime import timedelta
 
-from config.mongo import mongo
+from config.mongo import init_mongo
+from config.config import configure_app
 from routes.users_routes import users
-
-# Cargar variables de entorno
-load_dotenv()
+from routes.lawyers_routes import lawyers
+from routes.cases_routes import cases
 
 # Crear aplicación Flask
 app = Flask(__name__)
 
-# Configurar conexión con MongoDB
-app.config['MONGO_URI'] = os.getenv('MONGO_URI')
-mongo.init_app(app, tlsCAFile=certifi.where())
+# Configurar la aplicación
+configure_app(app)
 
-JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+# Inicializar MongoDB
+init_mongo(app)
 
-# Configuración de JWT
-app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+# Configurar JWT
 jwt = JWTManager(app)
 
-# Configurar CORS para permitir peticiones desde cualquier origen
+# Configurar CORS
 CORS(app)
 
 # Registrar rutas de usuarios
 app.register_blueprint(users, url_prefix='/users')
 
+# Registrar rutas de usuarios
+app.register_blueprint(lawyers, url_prefix='/lawyers')
+
+# Registrar rutas de usuarios
+app.register_blueprint(cases, url_prefix='/cases')
+
 # Iniciar aplicación
 if __name__ == '__main__':
-  app.run(debug=True)
+    app.run(debug=True)

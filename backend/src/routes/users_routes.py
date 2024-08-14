@@ -1,8 +1,9 @@
-import os
+from flask import Blueprint, request, jsonify, g
 from dotenv import load_dotenv
 from functools import wraps
-from flask import Blueprint, request, jsonify
+import os
 
+from config.mongo import get_db
 from services.users_services import (
     getAllUsersService,
     getUserService,
@@ -30,6 +31,11 @@ def require_api_key(f):
 
 # Crear un Blueprint para manejar las rutas de usuarios
 users = Blueprint('users', __name__)
+
+# Configurar la base de datos antes de cada solicitud
+@users.before_request
+def set_database():
+    g.db = get_db('App_Web_Procuradores')
 
 # Definir la ruta para obtener todos los usuarios
 @users.route('/', methods=['GET'])

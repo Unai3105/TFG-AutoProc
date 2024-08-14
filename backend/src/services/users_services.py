@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, g
 from bson import ObjectId
 from flask_jwt_extended import create_access_token
 import bcrypt
@@ -16,7 +16,7 @@ def handle_error(func):
 
 # Comprobar si un email ya existe en la base de datos
 def email_exists(email):
-    return mongo.db.users.find_one({'email': email}) is not None
+    return g.db.users.find_one({'email': email}) is not None
 
 # Códigos de estado HTTP
 # 200: OK
@@ -29,7 +29,7 @@ def email_exists(email):
 @handle_error
 def getAllUsersService():
     users = []
-    for doc in mongo.db.users.find():
+    for doc in g.db.users.find():
         users.append({
             '_id': str(ObjectId(doc['_id'])),
             'name': doc['name'],
@@ -44,7 +44,7 @@ def getAllUsersService():
 # Obtener un usuario dado su id
 @handle_error
 def getUserService(id):
-    user = mongo.db.users.find_one({'_id': ObjectId(id)})
+    user = g.db.users.find_one({'_id': ObjectId(id)})
     if user:
         return jsonify({
             '_id': str(user['_id']),
@@ -65,18 +65,38 @@ def createUserService():
     if email_exists(data['email']):
         return jsonify({'error': 'El correo electrónico ya existe'}), 400
 
-    # Cifrar la contraseña antes de guardar
-    hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-    data['password'] = hashed_password.decode('utf-8')
+    try:
+        # Cifrar la contraseña antes de guardar
+        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        data['password'] = hashed_password.decode('utf-8')
 
-    # Insertar el nuevo usuario en la base de datos
-    id = mongo.db.users.insert_one(data).inserted_id
+        # Insertar el nuevo usuario en la base de datos
+        user_id = g.db.users.insert_one(data).inserted_id
+    except Exception as e:
+        return jsonify({'error': 'Error al crear el usuario', 'details': str(e)}), 500
+
+    try:
+        # Nombre de la nueva base de datos para el usuario basado en su _id
+        user_db_name = f"user_{user_id}"
+        # Acceder al cliente MongoDB
+        client = mongo.cx
+        # Crear la nueva base de datos para el nuevo usuario
+        user_db = client[user_db_name]
+
+        # Inicializar colecciones en la nueva base de datos
+        user_db.create_collection('lawyers')
+        user_db.create_collection('cases')
+    except Exception as e:
+        print('error')
+        # Eliminar el usuario creado si la base de datos no pudo ser creada
+        g.db.users.delete_one({'_id': user_id})
+        return jsonify({'error': 'Error al crear la base de datos del usuario', 'details': str(e)}), 500
 
     # Generar un token JWT para el nuevo usuario
-    access_token = create_access_token(identity=str(id))
+    access_token = create_access_token(identity=str(user_id))
     
     return jsonify({
-        'message': f'Usuario {id} creado correctamente',
+        'message': f'Usuario {user_id} creado correctamente',
         'access_token': access_token
         }), 201
 
@@ -92,7 +112,7 @@ def updateUserService(id):
             hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
             data['password'] = hashed_password.decode('utf-8')
 
-        result = mongo.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
+        result = g.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
         
         if result.modified_count:
             return jsonify({'message': f'Usuario {id} actualizado'})
@@ -102,7 +122,7 @@ def updateUserService(id):
 # Eliminar un usuario dado su id
 @handle_error
 def deleteUserService(id):
-    result = mongo.db.users.delete_one({'_id': ObjectId(id)})
+    result = g.db.users.delete_one({'_id': ObjectId(id)})
     if result.deleted_count:
         return jsonify({'message': f'Usuario {id} eliminado'})
     else:
@@ -117,7 +137,7 @@ def loginUserService():
         return jsonify({'error': 'Faltan campos requeridos'}), 400
 
     # Buscar el usuario por correo electrónico
-    user = mongo.db.users.find_one({'email': data['email']})
+    user = g.db.users.find_one({'email': data['email']})
     if not user:
         # El correo electrónico no está registrado
         print('El correo electrónico no está registrado')
