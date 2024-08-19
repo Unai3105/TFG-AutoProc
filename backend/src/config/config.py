@@ -11,5 +11,5 @@ def configure_app(app):
     # Configuración de la aplicación
     app.config['MONGO_URI'] = os.getenv('MONGO_URI')
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
     app.config['CORS_HEADERS'] = 'Content-Type'

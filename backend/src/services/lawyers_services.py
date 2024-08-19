@@ -7,12 +7,14 @@ def handle_error(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            error_response = jsonify({'error': str(e)})
+            print(error_response.get_json())
+            return error_response, 500
     return wrapper
 
 # Comprobar si un email ya existe en la base de datos de abogados
 def email_exists(email):
-    return g.db.lawyers.find_one({'email': ObjectId(email)}) is not None
+    return g.db.lawyers.find_one({'email': email}) is not None
 
 # Obtener todos los abogados
 @handle_error
@@ -48,9 +50,11 @@ def getLawyerService(id):
 @handle_error
 def createLawyerService():
     data = request.json
+    # Verificar que todos los campos requeridos estén presentes
     if 'name' not in data or 'email' not in data or 'phone' not in data:
         return jsonify({'error': 'Faltan campos requeridos'}), 400
 
+    # Verificar que el correo electrónico no esté registrado
     if email_exists(data['email']):
         return jsonify({'error': 'El correo electrónico ya existe'}), 400
 
@@ -60,6 +64,62 @@ def createLawyerService():
     return jsonify({
         'message': f'Abogado {id} creado correctamente'
         }), 201
+
+# Cargar una lista de abogados
+@handle_error
+def uploadLawyersService():
+    data = request.json
+    if not isinstance(data, list):
+        return jsonify({'error': 'Los datos deben ser una lista de abogados'}), 400
+
+    created_ids = []
+    errors = []
+    warnings = []
+    required_fields = ['name', 'email', 'phone']
+
+    for lawyer in data:
+        # Verificar que todos los campos requeridos estén presentes
+        if not all(field in lawyer for field in required_fields):
+            errors.append({'lawyer': lawyer, 'error': 'Faltan campos requeridos'})
+            continue
+        
+        # Verificar que el correo electrónico no esté registrado
+        if email_exists(lawyer['email']):
+            warnings.append({'lawyer': lawyer, 'error': 'El correo electrónico ya existe'})
+            continue
+
+        # Insertar el nuevo abogado en la base de datos
+        id = g.db.lawyers.insert_one(lawyer).inserted_id
+        created_ids.append(str(id))
+        
+    if len(errors) == 0 and len(warnings) == 0:
+        # Todos los abogados se cargaron correctamente
+        return jsonify({
+            'message': 'Todos los abogados cargados correctamente',
+            'created_ids': created_ids
+        }), 201
+    elif len(errors) == 0 and len(warnings) > 0:
+        # Algunos abogados ya existían, pero no hubo errores
+        return jsonify({
+            'message': 'Algunos abogados ya estaban registrados',
+            'created_ids': created_ids,
+            'warnings': warnings
+        }), 200
+    elif len(errors) > 0 and len(created_ids) > 0:
+        # Algunos abogados se cargaron, pero otros fallaron
+        return jsonify({
+            'message': 'Proceso completado parcialmente',
+            'created_ids': created_ids,
+            'errors': errors,
+            'warnings': warnings
+        }), 207  # 207 Multi-Status
+    else:
+        # Ningún abogado se cargó debido a errores
+        return jsonify({
+            'message': 'Ningún abogado fue cargado',
+            'errors': errors
+        }), 400
+
 
 # Actualizar información de un abogado dado su id
 @handle_error

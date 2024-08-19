@@ -7,12 +7,14 @@ def handle_error(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            error_response = jsonify({'error': str(e)})
+            print(error_response.get_json())
+            return error_response, 500
     return wrapper
 
 # Comprobar si un caso ya existe en la base de datos de casos
-def case_exists(case_id):
-    return g.db.cases.find_one({'_id': ObjectId(case_id)}) is not None
+def case_exists(case_NIG):
+    return g.db.cases.find_one({'NIG': case_NIG}) is not None
 
 # Obtener todos los casos
 @handle_error
@@ -62,12 +64,69 @@ def createCaseService():
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Faltan campos requeridos'}), 400
 
+    # Verificar que el correo electrónico no esté registrado
+    if case_exists(data['NIG']):
+        return jsonify({'error': 'El caso ya existe'}), 400
+
     # Insertar el nuevo caso en la base de datos
     id = g.db.cases.insert_one(data).inserted_id
     
-    return jsonify({
-        'message': f'Caso {id} creado correctamente'
+    return jsonify({'message': f'Caso {id} creado correctamente'}), 201
+
+# Cargar una lista de abogados
+@handle_error
+def uploadCasesService():
+    data = request.json
+    if not isinstance(data, list):
+        return jsonify({'error': 'Los datos deben ser una lista de abogados'}), 400
+
+    created_ids = []
+    errors = []
+    warnings = []
+    required_fields = ['cliente', 'expediente', 'letrado', 'provision', 'dado en fecha', 'pago', 'NIG']
+
+    for case in data:
+        # Verificar que todos los campos requeridos estén presentes
+        if not all(field in case for field in required_fields):
+            errors.append({'case': case, 'error': 'Faltan campos requeridos'})
+            continue
+
+        # Verificar que el caso no esté registrado
+        if case_exists(case['NIG']):
+            warnings.append({'case': case, 'message': 'El caso ya existe'})
+            continue
+
+        # Insertar el nuevo caso en la base de datos
+        id = g.db.cases.insert_one(case).inserted_id
+        created_ids.append(str(id))
+
+    if len(errors) == 0 and len(warnings) == 0:
+        # Todos los casos se cargaron correctamente
+        return jsonify({
+            'message': 'Todos los casos cargados correctamente',
+            'created_ids': created_ids
         }), 201
+    elif len(errors) == 0 and len(warnings) > 0:
+        # Algunos casos ya existían, pero no hubo errores
+        return jsonify({
+            'message': 'Algunos casos ya estaban registrados',
+            'created_ids': created_ids,
+            'warnings': warnings
+        }), 200
+    elif len(errors) > 0 and len(created_ids) > 0:
+        # Algunos casos se cargaron, pero otros fallaron
+        return jsonify({
+            'message': 'Proceso completado parcialmente',
+            'created_ids': created_ids,
+            'errors': errors,
+            'warnings': warnings
+        }), 207  # 207 Multi-Status
+    else:
+        # Ningún caso se cargó debido a errores
+        return jsonify({
+            'message': 'Ningún abogado fue cargado',
+            'errors': errors
+        }), 400
 
 # Actualizar información de un caso dado su id
 @handle_error
