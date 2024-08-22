@@ -9,7 +9,7 @@ import SignupButton from '../components/FormComponents/SignupButton';
 import NameField from '../components/FormFields/NameField';
 import EmailField from '../components/FormFields/EmailField';
 import PasswordField from '../components/FormFields/PasswordField';
-import SignupService from '../services/SignupService';
+import SignupService from '../services/authentication/SignupService';
 import { AuthContext } from '../context/AuthContext';
 
 const RegisterPage = () => {
@@ -17,10 +17,10 @@ const RegisterPage = () => {
     // Hook para navegar
     const navigate = useNavigate();
     
-    // Referencia para el Toast
+    // Hook para el Toast
     const toast = useRef(null);
 
-    // Contexto de autenticación
+    // Hook de autenticación
     const { setAuth } = useContext(AuthContext);
 
     // Borrar el token JWT de sessionStorage cuando se monta el componente

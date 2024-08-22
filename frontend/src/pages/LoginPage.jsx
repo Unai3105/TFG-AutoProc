@@ -10,7 +10,7 @@ import LoginButton from '../components/FormComponents/LoginButton'
 import GoToAuthComponent from '../components/FormComponents/GoToAuthComponent';
 import EmailField from '../components/FormFields/EmailField';
 import PasswordField from '../components/FormFields/PasswordField';
-import LoginService from '../services/LoginService';
+import LoginService from '../services/authentication/LoginService';
 import { AuthContext } from '../context/AuthContext';
 
 const LoginPage = () => {
@@ -18,10 +18,10 @@ const LoginPage = () => {
     // Hook para navegar
     const navigate = useNavigate();
         
-    // Referencia para el Toast
+    // Hook para el Toast
     const toast = useRef(null);
 
-    // Contexto de autenticación
+    // Hook de autenticación
     const { setAuth } = useContext(AuthContext);
 
     // Borrar el token JWT de sessionStorage cuando se monta el componente
@@ -48,7 +48,7 @@ const LoginPage = () => {
             password: ''
         },
         validationSchema: validationSchema,
-        onSubmit: async (values, { setErrors, setSubmitting }) => {
+        onSubmit: async (values, { setSubmitting }) => {
             try {
                 const response = await LoginService(values);
                 const { access_token, message } = response;
@@ -59,16 +59,19 @@ const LoginPage = () => {
                 // Establecer el estado de autenticación
                 setAuth({ token: access_token, isAuthenticated: true });
 
+                // Mensaje de éxito
+                const successMsg = 'Inicio de sesión exitoso';
+
                 // Mostrar Toast de éxito
                 toast.current.show({ 
                     severity: 'success', 
                     summary: 'Éxito', 
-                    detail: 'Inicio de sesión exitoso', 
+                    detail: successMsg, 
                     life: 1500 
                 });
                 
                 // Mostrar el inicio de sesión exitoso por consola
-                console.log('Inicio de sesión exitoso:', message);
+                console.log(successMsg + ":", message);
 
                 // Redirigir a /home después de 1.5 segundos tras el inicio de sesión exitoso
                 setTimeout(() => {
@@ -77,8 +80,9 @@ const LoginPage = () => {
 
             } catch (error) {
                 if (error.response && error.response.data && error.response.data.error) {
+
+                    // Mensaje de error
                     const errorMsg = error.response.data.error;
-                    setErrors({ general: errorMsg });
 
                     // Mostrar Toast de error
                     toast.current.show({
@@ -91,16 +95,19 @@ const LoginPage = () => {
                     // Mostrar error por consola
                     console.error('Error en el inicio de sesión:', errorMsg);
                 }else{
+                    // Mensaje de error desconocido
+                    const unknowErrorMsg = 'Error desconocido, por favor intente de nuevo más tarde'
+
                     // Mostrar Toast de error
                     toast.current.show({
                         severity: 'error',
                         summary: 'Error',
-                        detail: 'Error desconocido, por favor intente de nuevo más tarde.',
+                        detail: unknowErrorMsg,
                         life: 3000
                     });
 
                     // Mostrar error por consola
-                    console.error('Error en el inicio de sesión:', error);
+                    console.error(unknowErrorMsg + ":", error);
                 }
             } finally {
                 setSubmitting(false);
@@ -124,7 +131,7 @@ const LoginPage = () => {
             <form onSubmit={formik.handleSubmit} className="p-fluid">
                 <Toast ref={toast} />
                 <EmailField formik={formik} />
-                <PasswordField formik={formik} />
+                <PasswordField formik={formik} showStrengthIndicator={false} />
                 <LoginButton />
                 <GoToAuthComponent
                     questionText="¿No tienes una cuenta?"

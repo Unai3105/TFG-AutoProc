@@ -120,7 +120,6 @@ def uploadLawyersService():
             'errors': errors
         }), 400
 
-
 # Actualizar información de un abogado dado su id
 @handle_error
 def updateLawyerService(id):

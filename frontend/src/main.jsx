@@ -9,9 +9,9 @@ import AppRoutes from './routes/AppRoutes'
 import './styles/index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <div align="center" className="app-container">
       <AppRoutes />
     </div>
-  </React.StrictMode>
+  // </React.StrictMode>
 )

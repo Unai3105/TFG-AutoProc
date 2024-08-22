@@ -13,8 +13,8 @@ def handle_error(func):
     return wrapper
 
 # Comprobar si un caso ya existe en la base de datos de casos
-def case_exists(case_NIG):
-    return g.db.cases.find_one({'NIG': case_NIG}) is not None
+def case_exists(case_nig):
+    return g.db.cases.find_one({'nig': case_nig}) is not None
 
 # Obtener todos los casos
 @handle_error
@@ -26,10 +26,9 @@ def getAllCasesService():
             'cliente': doc['cliente'],
             'expediente': doc['expediente'],
             'letrado': doc['letrado'],
-            'provision': doc['provision'],
             'dado en fecha': doc['dado en fecha'],
             'pago': doc['pago'],
-            'NIG': doc['NIG']
+            'nig': doc['nig']
         })
     if cases:
         return jsonify(cases)
@@ -46,10 +45,9 @@ def getCaseService(id):
             'cliente': case['cliente'],
             'expediente': case['expediente'],
             'letrado': case['letrado'],
-            'provision': case['provision'],
             'dado en fecha': case['dado en fecha'],
             'pago': case['pago'],
-            'NIG': case['NIG']
+            'nig': case['nig']
         })
     else:
         return jsonify({'error': f'Caso {id} no encontrado'}), 404
@@ -58,14 +56,14 @@ def getCaseService(id):
 @handle_error
 def createCaseService():
     data = request.json
-    required_fields = ['cliente', 'expediente', 'letrado', 'provision', 'dado en fecha', 'pago', 'NIG']
+    required_fields = ['cliente', 'expediente', 'letrado', 'dado en fecha', 'pago', 'nig']
     
     # Verificar que todos los campos requeridos estén presentes
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Faltan campos requeridos'}), 400
 
     # Verificar que el correo electrónico no esté registrado
-    if case_exists(data['NIG']):
+    if case_exists(data['nig']):
         return jsonify({'error': 'El caso ya existe'}), 400
 
     # Insertar el nuevo caso en la base de datos
@@ -73,17 +71,17 @@ def createCaseService():
     
     return jsonify({'message': f'Caso {id} creado correctamente'}), 201
 
-# Cargar una lista de abogados
+# Cargar una lista de casos
 @handle_error
 def uploadCasesService():
     data = request.json
     if not isinstance(data, list):
-        return jsonify({'error': 'Los datos deben ser una lista de abogados'}), 400
+        return jsonify({'error': 'Los datos deben ser una lista de casos'}), 400
 
     created_ids = []
     errors = []
     warnings = []
-    required_fields = ['cliente', 'expediente', 'letrado', 'provision', 'dado en fecha', 'pago', 'NIG']
+    required_fields = ['cliente', 'expediente', 'letrado', 'dado en fecha', 'pago', 'nig']
 
     for case in data:
         # Verificar que todos los campos requeridos estén presentes
@@ -92,7 +90,7 @@ def uploadCasesService():
             continue
 
         # Verificar que el caso no esté registrado
-        if case_exists(case['NIG']):
+        if case_exists(case['nig']):
             warnings.append({'case': case, 'message': 'El caso ya existe'})
             continue
 
@@ -124,7 +122,7 @@ def uploadCasesService():
     else:
         # Ningún caso se cargó debido a errores
         return jsonify({
-            'message': 'Ningún abogado fue cargado',
+            'message': 'Ningún caso fue cargado',
             'errors': errors
         }), 400
 
@@ -132,7 +130,7 @@ def uploadCasesService():
 @handle_error
 def updateCaseService(id):
     data = request.json
-    required_fields = ['cliente', 'expediente', 'letrado', 'provision', 'dado en fecha', 'pago', 'NIG']
+    required_fields = ['cliente', 'expediente', 'letrado', 'dado en fecha', 'pago', 'nig']
     
     # Verificar que todos los campos requeridos estén presentes
     if not all(field in data for field in required_fields):
