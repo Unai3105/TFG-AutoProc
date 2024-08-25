@@ -31,8 +31,8 @@ const RegisterPage = () => {
     }, [setAuth]);
 
     // Expresión regular para validar el nombre
-    const nameRegex = /^[a-zA-Z\s]*$/;
-
+    const nameRegex = /^[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+(?:[-'][A-Za-záéíóúüñÁÉÍÓÚÜÑ]+)*(?:\s[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+(?:[-'][A-Za-záéíóúüñÁÉÍÓÚÜÑ]+)*)*$/;
+    
     // Expresión regular para validar el correo electrónico
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -104,7 +104,7 @@ const RegisterPage = () => {
                     console.error('Error en el registro:', errorMsg);
                 }else{
                     // Mostrar error por consola
-                    console.error('Error en el registro:', error);
+                    console.error('Error desconocido, por favor intente de nuevo más tarde.', error);
                     
                     // Mostrar Toast de error
                     toast.current.show({
@@ -122,6 +122,18 @@ const RegisterPage = () => {
 
     return (
         <div className="p-d-flex p-flex-column p-align-center">
+            {/* Logo */}
+            <img
+                src="favicon.png"
+                alt="Logo"
+                style={{ width: '64px', height: '64px', marginBottom: '-30px' }}
+            />
+            {/* Texto de bienvenida */}
+            <h1 style={{ marginBottom: '20px', fontWeight: 'var(--font-weight-bold)', fontSize: '2.3rem', }}>
+                ¡Bienvenido!
+            </h1>
+
+            {/* Formulario de registro */}
             <form onSubmit={formik.handleSubmit} className="p-fluid">
                 <Toast ref={toast} />
                 <NameField formik={formik} />

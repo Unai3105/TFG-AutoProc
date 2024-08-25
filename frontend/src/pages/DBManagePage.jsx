@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from 'primereact/button';
 import { TabView, TabPanel } from 'primereact/tabview';
 import NavBar from '../components/NavBar/NavBar';
 import EditableDataTableComponent from '../components/EditableDataTableComponent';
@@ -12,7 +11,6 @@ const DBManagePage = () => {
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <NavBar />
             <h1>Visualización de Bases de Datos</h1>
-            {/* <Toast ref={toast} /> */}
             <TabView activeIndex={activeIndex} onTabChange={(event) => setActiveIndex(event.index)}>
                 <TabPanel
                     header="Base de datos de Abogados"

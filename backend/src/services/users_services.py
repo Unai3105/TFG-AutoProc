@@ -29,12 +29,13 @@ def email_exists(email):
 @handle_error
 def getAllUsersService():
     users = []
-    for doc in g.db.users.find():
+    for user in g.db.users.find():
         users.append({
-            '_id': str(ObjectId(doc['_id'])),
-            'name': doc['name'],
-            'email': doc['email'],
-            'password': doc['password']
+            '_id': str(ObjectId(user['_id'])),
+            'name': user['name'],
+            'email': user['email'],
+            'password': user['password'],
+            'localPath': user.get('localPath', '')
         })
     if users:
         return jsonify(users)
@@ -50,7 +51,8 @@ def getUserService(id):
             '_id': str(user['_id']),
             'name': user['name'],
             'email': user['email'],
-            'password': user['password']
+            'password': user['password'],
+            'localPath': user.get('localPath', '')
         })
     else:
         return jsonify({'error': f'Usuario {id} no encontrado'}), 404
@@ -69,6 +71,10 @@ def createUserService():
         # Cifrar la contraseña antes de guardar
         hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
         data['password'] = hashed_password.decode('utf-8')
+
+        # Si se proporciona localPath, incluirlo en los datos
+        if 'localPath' in data:
+            data['localPath'] = data['localPath']
 
         # Insertar el nuevo usuario en la base de datos
         user_id = g.db.users.insert_one(data).inserted_id
@@ -104,7 +110,7 @@ def createUserService():
 @handle_error
 def updateUserService(id):
     data = request.json
-    if 'name' not in data or 'email' not in data or 'password' not in data:
+    if 'name' not in data or 'email' not in data:
         return jsonify({'error': 'Faltan campos requeridos'}), 400
     else:
         # Cifrar la nueva contraseña si es que está siendo actualizada
@@ -112,13 +118,24 @@ def updateUserService(id):
             hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
             data['password'] = hashed_password.decode('utf-8')
 
-        result = g.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
-        
-        if result.modified_count:
-            return jsonify({'message': f'Usuario {id} actualizado'})
-        else:
-            return jsonify({'error': f'Usuario {id} no encontrado'}), 404
+        # Incluir el localPath si se proporciona
+        if 'localPath' in data:
+            data['localPath'] = data['localPath']
 
+        result = g.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
+
+        # El usuario no fue encontrado
+        if result.matched_count == 0:
+            return jsonify({'error': f'Usuario {id} no encontrado'}), 404
+        
+        # No se realizaron cambios en los datos
+        elif result.modified_count == 0:
+            return jsonify({'message': f'Usuario {id} no actualizado. No se realizaron cambios.'}), 200
+        
+        # Los datos fueron actualizados con éxito
+        else:
+            return jsonify({'message': f'Usuario {id} actualizado correctamente'}), 200
+        
 # Eliminar un usuario dado su id
 @handle_error
 def deleteUserService(id):

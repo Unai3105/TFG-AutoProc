@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify, g, request, make_response
-from flask_jwt_extended import get_jwt_identity, jwt_required, verify_jwt_in_request
+from flask import Blueprint, jsonify, g, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from config.mongo import get_db
 from services.lawyers_services import (

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const GetFileService = async (uploadPath) => {
+const GetFileListFromLocalService = async (directoryPath) => {
     try {
         // Obtener el token JWT desde sessionStorage
         const token = sessionStorage.getItem('jwt');
@@ -13,7 +13,7 @@ const GetFileService = async (uploadPath) => {
 
         // Opciones de la solicitud HTTP
         const reqOptions = {
-            url: `http://127.0.0.1:5000/${uploadPath}/`,
+            url: `http://127.0.0.1:5000/notifications/list?directory_path=${encodeURIComponent(directoryPath)}`,
             method: "GET",
             headers: headersList,
         };
@@ -29,4 +29,4 @@ const GetFileService = async (uploadPath) => {
     }
 };
 
-export default GetFileService;
+export default GetFileListFromLocalService;

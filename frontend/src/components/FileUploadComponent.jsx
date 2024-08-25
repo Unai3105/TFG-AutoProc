@@ -46,7 +46,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                     severity: 'error',
                     summary: 'Error',
                     detail: CreateToastDialogComponent(errorMsg, () => setVisible(true)),
-                    life: 3000
+                    life: 5000
                 });
                 console.error(errorMsg, result);
             }
@@ -119,7 +119,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                     severity: 'error',
                     summary: 'Error',
                     detail: CreateToastDialogComponent(errorMsg, () => setVisible(true)),
-                    life: 3000
+                    life: 5000
                 });
                 console.error(errorMsg, result.error);
             }
@@ -192,6 +192,8 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
 
                 customUpload
                 uploadHandler={uploadHandler}
+
+                emptyTemplate={<p className="m-0">Pulse en seleccionar archivo o arrastre y sueltelo aquí para cargarlo.</p>}
             />
 
         </div >

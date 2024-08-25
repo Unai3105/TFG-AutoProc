@@ -17,7 +17,7 @@ const SignupService = async (userData) => {
         const response = await api.post('/', userData);
         
         return response.data;
-    } catch {
+    } catch (error) {
         throw error;
     }
 };

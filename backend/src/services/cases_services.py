@@ -138,10 +138,17 @@ def updateCaseService(id):
 
     result = g.db.cases.update_one({'_id': ObjectId(id)}, {"$set": data})
     
-    if result.modified_count:
-        return jsonify({'message': f'Caso {id} actualizado'})
-    else:
+    # El caso no fue encontrado
+    if result.matched_count == 0:
         return jsonify({'error': f'Caso {id} no encontrado'}), 404
+    
+    # No se realizaron cambios en los datos
+    elif result.modified_count == 0:
+        return jsonify({'message': f'Caso {id} no actualizado. No se realizaron cambios.'}), 200
+    
+    # Los datos fueron actualizados con éxito
+    else:
+        return jsonify({'message': f'Caso {id} actualizado correctamente'}), 200
 
 # Eliminar un caso dado su id
 @handle_error

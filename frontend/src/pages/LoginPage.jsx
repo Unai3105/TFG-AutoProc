@@ -17,7 +17,7 @@ const LoginPage = () => {
 
     // Hook para navegar
     const navigate = useNavigate();
-        
+
     // Hook para el Toast
     const toast = useRef(null);
 
@@ -63,13 +63,13 @@ const LoginPage = () => {
                 const successMsg = 'Inicio de sesión exitoso';
 
                 // Mostrar Toast de éxito
-                toast.current.show({ 
-                    severity: 'success', 
-                    summary: 'Éxito', 
-                    detail: successMsg, 
-                    life: 1500 
+                toast.current.show({
+                    severity: 'success',
+                    summary: 'Éxito',
+                    detail: successMsg,
+                    life: 1500
                 });
-                
+
                 // Mostrar el inicio de sesión exitoso por consola
                 console.log(successMsg + ":", message);
 
@@ -94,7 +94,7 @@ const LoginPage = () => {
 
                     // Mostrar error por consola
                     console.error('Error en el inicio de sesión:', errorMsg);
-                }else{
+                } else {
                     // Mensaje de error desconocido
                     const unknowErrorMsg = 'Error desconocido, por favor intente de nuevo más tarde'
 
@@ -126,8 +126,21 @@ const LoginPage = () => {
 
     return (
         <div className="p-d-flex p-flex-column p-align-center">
+            {/* Logo */}
+            <img
+                src="favicon.png"
+                alt="Logo"
+                style={{ width: '64px', height: '64px', marginBottom: '-30px' }}
+            />
+            {/* Texto de bienvenida */}
+            <h1 style={{ marginBottom: '20px', fontWeight: 'var(--font-weight-bold)', fontSize: '2.3rem', }}>
+                ¡Bienvenido!
+            </h1>
+
             {/* <GoogleLoginComponent onSuccess={handleGoogleLoginSuccess} onFailure={handleGoogleLoginFailure} />
             <Divider align="center">O</Divider> */}
+
+            {/* Formulario de inicio de sesión */}
             <form onSubmit={formik.handleSubmit} className="p-fluid">
                 <Toast ref={toast} />
                 <EmailField formik={formik} />

@@ -6,7 +6,7 @@ import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import GetFileService from '../services/file_management/GetFileService';
+import GetFileFromDBService from '../services/file_management/GetFileFromDBService'
 import ItemDeleteService from '../services/item_management/ItemDeleteService';
 import ItemUpdateService from '../services/item_management/ItemUpdateService';
 import ValidateItemService from '../services/validation/ValidateItemService';
@@ -32,22 +32,32 @@ const EditableDataTableComponent = ({ path }) => {
     // Clave única de las filas
     const dataKey = '_id';
 
-    // Carga datos al cambiar 'path'
+    // Carga datos
     useEffect(() => {
         const loadData = async () => {
             // Obtiene los datos desde el servicio
-            const result = await GetFileService(path);
+            const result = await GetFileFromDBService(path);
             // Guarda datos si la llamada es exitosa
             if (result.success) {
                 setData(result.data);
             } else {
-                // Muestra error si la llamada falla
-                toast.current.show({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: result.error,
-                    life: 3000
-                });
+                if (result.error == 'Ningún abogado encontrado') {
+                    // Muestra advertencia si la llamada falla
+                    toast.current.show({
+                        severity: 'warn',
+                        summary: 'Advertencia',
+                        detail: `${result.error}. Por favor, cargue una base de datos.`,
+                        life: 5000
+                    });
+                } else {
+                    // Muestra error si la llamada falla
+                    toast.current.show({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: result.error,
+                        life: 3000
+                    });
+                }
             }
         };
 
@@ -202,7 +212,7 @@ const EditableDataTableComponent = ({ path }) => {
                     severity: 'error',
                     summary: 'Error de Validación',
                     detail: CreateToastDialogComponent(errorMsg, () => setVisible(true)),
-                    life: 3000
+                    life: 5000
                 });
                 console.error(errorMsg, validationResponse.errors);
                 return;
