@@ -8,23 +8,31 @@ const DBManagePage = () => {
     const [activeIndex, setActiveIndex] = useState(0);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div>
             <NavBar />
-            <h1>Visualización de Bases de Datos</h1>
-            <TabView activeIndex={activeIndex} onTabChange={(event) => setActiveIndex(event.index)}>
-                <TabPanel
-                    header="Base de datos de Abogados"
-                    leftIcon={<i className="pi pi-users" style={{ marginRight: '0.5rem' }} />}
-                >
-                    <EditableDataTableComponent path="lawyers" />
-                </TabPanel>
-                <TabPanel
-                    header="Base de datos de Casos"
-                    leftIcon={<i className="pi pi-briefcase" style={{ marginRight: '0.5rem' }} />}
-                >
-                    <EditableDataTableComponent path="cases" />
-                </TabPanel>
-            </TabView>
+            <div style={{
+                position: 'fixed', // Fija el contenedor
+                top: 75, // Deja espacio debajo del NavBar
+                left: '50%', // Mueve el contenedor al centro de la pantalla
+                transform: 'translateX(-50%)', // Centra el contenedor horizontalmente
+                minWidth: '900px', // Establece el ancho mínimo
+                maxWidth: '100%', // Establece el ancho máximo
+            }}>
+                <TabView activeIndex={activeIndex} onTabChange={(event) => setActiveIndex(event.index)}>
+                    <TabPanel
+                        header="Base de datos de Abogados"
+                        leftIcon={<i className="pi pi-users" style={{ marginRight: '0.5rem' }} />}
+                    >
+                        <EditableDataTableComponent path="lawyers" />
+                    </TabPanel>
+                    <TabPanel
+                        header="Base de datos de Casos"
+                        leftIcon={<i className="pi pi-briefcase" style={{ marginRight: '0.5rem' }} />}
+                    >
+                        <EditableDataTableComponent path="cases" />
+                    </TabPanel>
+                </TabView>
+            </div>
         </div>
     );
 };

@@ -1,34 +1,49 @@
 import React, { useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import { FileUpload } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
-
 import FileInfoComponent from './FileInfoComponent';
 import FileProcessingService from '../services/file_management/FileProcessingService';
 import FileUploadService from '../services/file_management/FileUploadService';
 import CreateToastDialogComponent from '../components/CreateToastDialogComponent';
+import SessionExpiredService from '../services/authentication/SesionExpiredService';
 
 const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
+
+    // Estado para manejar la sesión expirada
+    const [sessionExpired, setSessionExpired] = useState(false);
 
     const toast = useRef(null);
 
     const fileUploadRef = useRef(null);
 
     const [fileData, setFileData] = useState(null);
+
     const [visible, setVisible] = useState(false);
+
     const [messageData, setMessageData] = useState([]);
 
     const onFileSelect = async (event) => {
         if (event.files && event.files.length > 0) {
+
             const file = event.files[0];
+
             const result = await FileProcessingService(file, uploadPath);
+
+            // Sesión expirada
+            if (result.tokenExpired) {
+                setSessionExpired(true);
+                return;
+            }
+
             if (result.success) {
                 setFileData({
                     file: result.data,
                     name: file.name,
                     size: file.size,
                     severity: 'warning',
-                    statusText: 'Pending'
+                    statusText: 'Pendiente'
                 });
                 onFileLoad(result.data);
                 console.log('Archivo procesado y datos cargados:', result.data);
@@ -78,12 +93,18 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
         try {
             const result = await FileUploadService(fileData.file, uploadPath);
 
+            // Sesión expirada
+            if (result.tokenExpired) {
+                setSessionExpired(true);
+                return;
+            }
+
             if (result && result.success) {
                 setFileData({
                     // copia las propiedades existentes
                     ...fileData,
                     severity: 'success',
-                    statusText: 'Completed'
+                    statusText: 'Completado'
                 });
                 // Casos creados
                 if (result.data.created_ids.length > 0) {
@@ -165,8 +186,11 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
     }
 
     return (
-        <div>
-            <Toast ref={toast} />
+        <SessionExpiredService sessionExpired={sessionExpired}>
+            {ReactDOM.createPortal(
+                <Toast ref={toast} />,
+                document.getElementById('toast-portal')
+            )}
             <Dialog header="Detalles de los datos cargados" visible={visible} style={{ width: '50vw' }} onHide={() => setVisible(false)}>
                 <pre>{JSON.stringify(messageData, null, 2)}</pre>
             </Dialog>
@@ -196,7 +220,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                 emptyTemplate={<p className="m-0">Pulse en seleccionar archivo o arrastre y sueltelo aquí para cargarlo.</p>}
             />
 
-        </div >
+        </SessionExpiredService>
     );
 }
 

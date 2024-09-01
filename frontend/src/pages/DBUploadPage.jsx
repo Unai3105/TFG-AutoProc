@@ -6,7 +6,7 @@ import DataTableComponent from '../components/DataTableComponent';
 import FileUploadComponent from '../components/FileUploadComponent';
 
 const DBUploadPage = () => {
-    
+
     // Definir estados separados para cada tabla
     const [lawyersData, setLawyersData] = useState([]);
     const [casesData, setCasesData] = useState([]);
@@ -55,32 +55,39 @@ const DBUploadPage = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div>
             <NavBar />
-            <h1>Gestión de Bases de Datos</h1>
             <Toast ref={toast} />
-            <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
-                <TabPanel
-                    header="Base de datos de Abogados"
-                    leftIcon={<i className="pi pi-users" style={{ marginRight: '0.5rem' }} />}
-                >
-                    <FileUploadComponent
-                        onFileLoad={uploadLawyersFile}
-                        uploadPath="lawyers"
-                    />
-                    {lawyersData && lawyersData.length > 0 && <DataTableComponent data={lawyersData} />}
-                </TabPanel>
-                <TabPanel
-                    header="Base de datos de Casos"
-                    leftIcon={<i className="pi pi-briefcase" style={{ marginRight: '0.5rem' }} />}
-                >
-                    <FileUploadComponent
-                        onFileLoad={uploadCasesFile}
-                        uploadPath="cases"
-                    />
-                    {casesData && casesData.length > 0 && <DataTableComponent data={casesData} />}
-                </TabPanel>
-            </TabView>
+            <div style={{
+                position: 'fixed', // Fija el contenedor
+                top: 75, // Deja espacio debajo del NavBar
+                left: '50%', // Mueve el contenedor al centro de la pantalla
+                transform: 'translateX(-50%)', // Centra el contenedor horizontalmente
+                width: '945px', // Establece el ancho del componente
+            }}>
+                <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
+                    <TabPanel
+                        header="Base de datos de Abogados"
+                        leftIcon={<i className="pi pi-users" style={{ marginRight: '0.5rem' }} />}
+                    >
+                        <FileUploadComponent
+                            onFileLoad={uploadLawyersFile}
+                            uploadPath="lawyers"
+                        />
+                        {lawyersData && lawyersData.length > 0 && <DataTableComponent data={lawyersData} />}
+                    </TabPanel>
+                    <TabPanel
+                        header="Base de datos de Casos"
+                        leftIcon={<i className="pi pi-briefcase" style={{ marginRight: '0.5rem' }} />}
+                    >
+                        <FileUploadComponent
+                            onFileLoad={uploadCasesFile}
+                            uploadPath="cases"
+                        />
+                        {casesData && casesData.length > 0 && <DataTableComponent data={casesData} />}
+                    </TabPanel>
+                </TabView>
+            </div>
         </div>
     );
 };

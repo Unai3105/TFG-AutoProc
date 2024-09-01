@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
@@ -6,13 +7,17 @@ import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import GetFileFromDBService from '../services/file_management/GetFileFromDBService'
+import GetAllItemsService from '../services/item_management/GetAllItemsService'
 import ItemDeleteService from '../services/item_management/ItemDeleteService';
 import ItemUpdateService from '../services/item_management/ItemUpdateService';
 import ValidateItemService from '../services/validation/ValidateItemService';
 import CreateToastDialogComponent from './CreateToastDialogComponent';
+import SessionExpiredService from '../services/authentication/SesionExpiredService';
 
 const EditableDataTableComponent = ({ path }) => {
+
+    // Estado para manejar la sesión expirada
+    const [sessionExpired, setSessionExpired] = useState(false);
 
     // Estado para datos de la tabla
     const [data, setData] = useState([]);
@@ -36,17 +41,28 @@ const EditableDataTableComponent = ({ path }) => {
     useEffect(() => {
         const loadData = async () => {
             // Obtiene los datos desde el servicio
-            const result = await GetFileFromDBService(path);
+            const result = await GetAllItemsService(path);
+
+            // Sesión expirada
+            if (result.tokenExpired) {
+                setSessionExpired(true);
+                return;
+            }
+
             // Guarda datos si la llamada es exitosa
             if (result.success) {
                 setData(result.data);
             } else {
-                if (result.error == 'Ningún abogado encontrado') {
+                if (result.error == 'Ningún abogado encontrado' || 'Ningún caso encontrado') {
                     // Muestra advertencia si la llamada falla
                     toast.current.show({
                         severity: 'warn',
                         summary: 'Advertencia',
-                        detail: `${result.error}. Por favor, cargue una base de datos.`,
+                        detail: CreateToastDialogComponent(
+                            `${result.error}. Por favor, cargue una base de datos.`,
+                            () => window.location.href = '/databaseUpload',
+                            "Ir a Cargar bases de datos"
+                        ),
                         life: 5000
                     });
                 } else {
@@ -69,7 +85,7 @@ const EditableDataTableComponent = ({ path }) => {
     const textEditor = (options) => {
 
         // Obtén el valor actual de la celda
-        const currentText = options.value;
+        const currentText = options.value.replace(/\s+/g, '');
 
         // Calcula el ancho en función del número de caracteres
         const charWidth = 8;
@@ -80,7 +96,7 @@ const EditableDataTableComponent = ({ path }) => {
                 type="text" // Define el tipo de input como texto
                 value={options.value} // Asigna el valor de la celda
                 onChange={(e) => options.editorCallback(e.target.value)} // Actualiza el valor en tiempo real
-                style={{ width: `${textWidth + 40}px` }} // Aplica el ancho calculado
+                style={{ width: `${textWidth + 43}px` }} // Aplica el ancho calculado
             />
         );
     };
@@ -199,7 +215,6 @@ const EditableDataTableComponent = ({ path }) => {
             // Validar los datos antes de proceder con la actualización
             const validationResponse = ValidateItemService(dataToValidate, path);
 
-            console.log(validationResponse.success)
             // Si la validación falla, muestra un mensaje de error y reestablece los valores
             if (!validationResponse.success) {
                 let _data = [...data];
@@ -220,6 +235,12 @@ const EditableDataTableComponent = ({ path }) => {
 
             // Llamar al servicio para actualizar la entidad
             const response = await ItemUpdateService(path, newDataRow);
+
+            // Sesión expirada
+            if (response.tokenExpired) {
+                setSessionExpired(true);
+                return;
+            }
 
             if (response.success) {
                 // Si la actualización fue exitosa, actualizar la fila en el estado
@@ -266,6 +287,12 @@ const EditableDataTableComponent = ({ path }) => {
             // Llamar al servicio para eliminar la entidad
             const response = await ItemDeleteService(path, entityId);
 
+            // Sesión expirada
+            if (response.tokenExpired) {
+                setSessionExpired(true);
+                return;
+            }
+
             if (response.success) {
                 // Si la eliminación fue exitosa, eliminar la fila del estado
                 let _data = [...data];
@@ -302,8 +329,11 @@ const EditableDataTableComponent = ({ path }) => {
     };
 
     return (
-        <div>
-            <Toast ref={toast} />
+        <SessionExpiredService sessionExpired={sessionExpired}>
+            {ReactDOM.createPortal(
+                <Toast ref={toast} />,
+                document.getElementById('toast-portal')
+            )}
             <Dialog header="Detalles de los datos cargados" visible={visible} style={{ width: '50vw' }} onHide={() => setVisible(false)}>
                 <pre>{JSON.stringify(messageData, null, 2)}</pre>
             </Dialog>
@@ -354,7 +384,7 @@ const EditableDataTableComponent = ({ path }) => {
                 // Muestra un mensaje si no hay datos
                 <p>No hay datos disponibles.</p>
             )}
-        </div>
+        </SessionExpiredService>
     );
 };
 

@@ -4,19 +4,21 @@ import { useFormik } from 'formik';
 import { Toast } from 'primereact/toast';
 import * as Yup from 'yup';
 
+import { AuthContext } from '../context/AuthContext';
 import GoToAuthComponent from '../components/FormComponents/GoToAuthComponent';
 import SignupButton from '../components/FormComponents/SignupButton';
 import NameField from '../components/FormFields/NameField';
+import LastNamesField from '../components/FormFields/LastNamesField';
 import EmailField from '../components/FormFields/EmailField';
 import PasswordField from '../components/FormFields/PasswordField';
 import SignupService from '../services/authentication/SignupService';
-import { AuthContext } from '../context/AuthContext';
+import FormatNameService from '../services/formatting/FormatNameService';
 
 const RegisterPage = () => {
 
     // Hook para navegar
     const navigate = useNavigate();
-    
+
     // Hook para el Toast
     const toast = useRef(null);
 
@@ -31,27 +33,34 @@ const RegisterPage = () => {
     }, [setAuth]);
 
     // Expresión regular para validar el nombre
-    const nameRegex = /^[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+(?:[-'][A-Za-záéíóúüñÁÉÍÓÚÜÑ]+)*(?:\s[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+(?:[-'][A-Za-záéíóúüñÁÉÍÓÚÜÑ]+)*)*$/;
-    
+    const nameRegex = /^\s*[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+(?:[-'][A-Za-záéíóúüñÁÉÍÓÚÜÑ]+)*(?:\s+[A-Za-záéíóúüñÁÉÍÓÚÜÑ]+(?:[-'][A-Za-záéíóúüñÁÉÍÓÚÜÑ]+)*)*\s*$/;
+
     // Expresión regular para validar el correo electrónico
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    // Expresión regular para validar la contraseña
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
     // Validación del esquema mediante Yup
     const validationSchema = Yup.object({
         name: Yup.string()
-            .matches(nameRegex, 'El nombre solo puede contener letras')
+            .matches(nameRegex, 'Campo inválido')
+            .required('Campo requerido'),
+        lastNames: Yup.string()
+            .matches(nameRegex, 'Campo inválido')
             .required('Campo requerido'),
         email: Yup.string()
-            .matches(emailRegex, 'Dirección de email inválida')
+            .matches(emailRegex, 'Campo inválido')
             .required('Campo requerido'),
         password: Yup.string()
-            .min(8, 'La contraseña debe tener al menos 8 caracteres')
+            .matches(passwordRegex, 'Campo inválido')
             .required('Campo requerido'),
     });
 
     const formik = useFormik({
         initialValues: {
             name: '',
+            lastNames: '',
             email: '',
             password: ''
         },
@@ -59,8 +68,9 @@ const RegisterPage = () => {
         onSubmit: async (values, { setErrors, setSubmitting }) => {
             try {
                 const userData = {
-                    name: values.name,
+                    name: FormatNameService(values.name),
                     email: values.email,
+                    lastNames: FormatNameService(values.lastNames),
                     password: values.password
                 };
                 const response = await SignupService(userData);
@@ -72,7 +82,7 @@ const RegisterPage = () => {
                 setAuth({ token: access_token, isAuthenticated: true });
 
                 // Mostrar Toast de éxito
-                toast.current.show({ 
+                toast.current.show({
                     severity: 'success', // Tipo de mensaje
                     summary: 'Éxito', // Título del mensaje
                     detail: 'Te has registrado correctamente', // Detalles del mensaje
@@ -91,7 +101,7 @@ const RegisterPage = () => {
                 if (error.response && error.response.data && error.response.data.error) {
                     const errorMsg = error.response.data.error
                     setErrors({ general: errorMsg });
-                    
+
                     // Mostrar Toast de error
                     toast.current.show({
                         severity: 'error', // Tipo de mensaje
@@ -102,10 +112,10 @@ const RegisterPage = () => {
 
                     // Mostrar error por consola
                     console.error('Error en el registro:', errorMsg);
-                }else{
+                } else {
                     // Mostrar error por consola
                     console.error('Error desconocido, por favor intente de nuevo más tarde.', error);
-                    
+
                     // Mostrar Toast de error
                     toast.current.show({
                         severity: 'error',
@@ -137,6 +147,7 @@ const RegisterPage = () => {
             <form onSubmit={formik.handleSubmit} className="p-fluid">
                 <Toast ref={toast} />
                 <NameField formik={formik} />
+                <LastNamesField formik={formik} />
                 <EmailField formik={formik} />
                 <PasswordField formik={formik} />
                 <SignupButton />
