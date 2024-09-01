@@ -5,10 +5,12 @@ from config.mongo import get_db
 from services.cases_services import (
     getAllCasesService,
     getCaseService,
+    getCaseByNIGService,
     createCaseService,
     updateCaseService,
     deleteCaseService,
-    uploadCasesService
+    uploadCasesService,
+    checkCasesDataService
 )
 
 # Crear un Blueprint para manejar las rutas de casos
@@ -52,6 +54,11 @@ def getAllCases():
 def getCase(id):
     return getCaseService(id)
 
+# Definir la ruta para obtener un caso dado su NIG
+@cases.route('/nig/<nig>', methods=['GET'])
+def getCaseByNIG(nig):
+    return getCaseByNIGService(nig)
+
 # Definir la ruta para crear un nuevo caso
 @cases.route('/', methods=['POST'])
 def createCase():
@@ -71,3 +78,8 @@ def updateCase(id):
 @cases.route('/<id>', methods=['DELETE'])
 def deleteCase(id):
     return deleteCaseService(id)
+
+# Definir la ruta para verificar si hay abogados en la base de datos
+@cases.route('/checkData', methods=['GET'])
+def checkCasesData():
+    return checkCasesDataService()

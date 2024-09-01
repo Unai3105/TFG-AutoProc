@@ -33,8 +33,14 @@ def getAllUsersService():
         users.append({
             '_id': str(ObjectId(user['_id'])),
             'name': user['name'],
+            'lastNames': user['lastNames'],
             'email': user['email'],
             'password': user['password'],
+            'emailPassword': user.get('emailPassword', ''),
+            'phone': user.get('phone', ''),
+            'address': user.get('address', ''),
+            'postalCode': user.get('postalCode', ''),
+            'city': user.get('city', ''),
             'localPath': user.get('localPath', '')
         })
     if users:
@@ -50,8 +56,14 @@ def getUserService(id):
         return jsonify({
             '_id': str(user['_id']),
             'name': user['name'],
+            'lastNames': user['lastNames'],
             'email': user['email'],
             'password': user['password'],
+            'emailPassword': user.get('emailPassword', ''),
+            'phone': user.get('phone', ''),
+            'address': user.get('address', ''),
+            'postalCode': user.get('postalCode', ''),
+            'city': user.get('city', ''),
             'localPath': user.get('localPath', '')
         })
     else:
@@ -61,8 +73,14 @@ def getUserService(id):
 @handle_error
 def createUserService():
     data = request.json
-    if 'name' not in data or 'email' not in data or 'password' not in data:
-        return jsonify({'error': 'Faltan campos requeridos'}), 400
+
+    # Campos obligatorios
+    required_fields = ['name', 'lastNames', 'email', 'password']
+
+    # Verificar que todos los campos requeridos estén presentes
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Falta el campo requerido: {field}'}), 400
 
     if email_exists(data['email']):
         return jsonify({'error': 'El correo electrónico ya existe'}), 400
@@ -72,10 +90,7 @@ def createUserService():
         hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
         data['password'] = hashed_password.decode('utf-8')
 
-        # Si se proporciona localPath, incluirlo en los datos
-        if 'localPath' in data:
-            data['localPath'] = data['localPath']
-
+        # Si se proporcionan los demás campos opcionales, se añadirán automaticamente
         # Insertar el nuevo usuario en la base de datos
         user_id = g.db.users.insert_one(data).inserted_id
     except Exception as e:
@@ -93,7 +108,7 @@ def createUserService():
         user_db.create_collection('lawyers')
         user_db.create_collection('cases')
     except Exception as e:
-        print('error')
+
         # Eliminar el usuario creado si la base de datos no pudo ser creada
         g.db.users.delete_one({'_id': user_id})
         return jsonify({'error': 'Error al crear la base de datos del usuario', 'details': str(e)}), 500
@@ -109,32 +124,37 @@ def createUserService():
 # Actualizar información de un usuario dado su id
 @handle_error
 def updateUserService(id):
+
     data = request.json
-    if 'name' not in data or 'email' not in data:
-        return jsonify({'error': 'Faltan campos requeridos'}), 400
+
+    # Campos obligatorios
+    required_fields = ['name', 'lastNames', 'email']
+
+    # Verificar que los campos requeridos estén presentes
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Falta el campo requerido: {field}'}), 400
+        
+    # Cifrar la nueva contraseña si es que está siendo actualizada
+    if 'password' in data:
+        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        data['password'] = hashed_password.decode('utf-8')
+
+    # Si se proporcionan los demás campos opcionales, se añadirán automaticamente
+    # Actualizar los datos del usuario
+    result = g.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
+
+    # El usuario no fue encontrado
+    if result.matched_count == 0:
+        return jsonify({'error': f'Usuario {id} no encontrado'}), 404
+        
+    # No se realizaron cambios en los datos
+    elif result.modified_count == 0:
+        return jsonify({'message': f'Usuario {id} no actualizado. No se realizaron cambios.'}), 200
+        
+    # Los datos fueron actualizados con éxito
     else:
-        # Cifrar la nueva contraseña si es que está siendo actualizada
-        if 'password' in data:
-            hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-            data['password'] = hashed_password.decode('utf-8')
-
-        # Incluir el localPath si se proporciona
-        if 'localPath' in data:
-            data['localPath'] = data['localPath']
-
-        result = g.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
-
-        # El usuario no fue encontrado
-        if result.matched_count == 0:
-            return jsonify({'error': f'Usuario {id} no encontrado'}), 404
-        
-        # No se realizaron cambios en los datos
-        elif result.modified_count == 0:
-            return jsonify({'message': f'Usuario {id} no actualizado. No se realizaron cambios.'}), 200
-        
-        # Los datos fueron actualizados con éxito
-        else:
-            return jsonify({'message': f'Usuario {id} actualizado correctamente'}), 200
+        return jsonify({'message': f'Usuario {id} actualizado correctamente'}), 200
         
 # Eliminar un usuario dado su id
 @handle_error

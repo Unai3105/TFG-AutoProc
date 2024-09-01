@@ -5,10 +5,12 @@ from config.mongo import get_db
 from services.lawyers_services import (
     getAllLawyersService,
     getLawyerService,
+    getLawyerByNameService,
     createLawyerService,
     uploadLawyersService,
     updateLawyerService,
     deleteLawyerService,
+    checkLawyersDataService,
 )
 
 # Crear un Blueprint para manejar las rutas de abogados
@@ -52,6 +54,11 @@ def getAllLawyers():
 def getLawyer(id):
     return getLawyerService(id)
 
+# Definir la ruta para obtener un abogado dado su nombre
+@lawyers.route('/name/<name>', methods=['GET'])
+def getLawyerByName(name):
+    return getLawyerByNameService(name)
+
 # Definir la ruta para crear un nuevo abogado
 @lawyers.route('/', methods=['POST'])
 def createLawyer():
@@ -71,3 +78,8 @@ def updateLawyer(id):
 @lawyers.route('/<id>', methods=['DELETE'])
 def deleteLawyer(id):
     return deleteLawyerService(id)
+
+# Definir la ruta para verificar si hay abogados en la base de datos
+@lawyers.route('/checkData', methods=['GET'])
+def checkLawyersData():
+    return checkLawyersDataService()

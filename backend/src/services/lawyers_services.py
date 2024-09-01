@@ -46,6 +46,21 @@ def getLawyerService(id):
     else:
         return jsonify({'error': f'Abogado {id} no encontrado'}), 404
 
+# Obtener un abogado dado su nombre
+def getLawyerByNameService(name):
+    # Buscar un abogado en la base de datos por su nombre
+    lawyer = g.db.lawyers.find_one({'name': name})
+    
+    if lawyer:
+        return jsonify({
+            '_id': str(lawyer['_id']),
+            'name': lawyer['name'],
+            'email': lawyer['email'],
+            'phone': lawyer['phone']
+        })
+    else:
+        return jsonify({'error': f'Abogado con nombre {name} no encontrado'}), 404
+
 # Crear nuevo abogado
 @handle_error
 def createLawyerService():
@@ -149,3 +164,10 @@ def deleteLawyerService(id):
         return jsonify({'message': f'Abogado {id} eliminado'})
     else:
         return jsonify({'error': f'Abogado {id} no encontrado'}), 404
+    
+# Verificar si hay abogados en la base de datos
+@handle_error
+def checkLawyersDataService():
+    # Utiliza count_documents({}) para comprobar si existe al menos un abogado
+    has_data = g.db.lawyers.count_documents({}) > 0
+    return jsonify({'hasData': has_data}), 200

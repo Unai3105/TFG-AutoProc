@@ -1,4 +1,9 @@
 from flask import jsonify, send_file
+from flask_mail import Mail, Message
+from flask import current_app
+import pdfplumber
+import smtplib
+import re
 import os
 
 # Decorador para tratar excepciones
@@ -18,6 +23,10 @@ def getFileService(directory_path, fileName):
     # Verificar que los parámetros no sean None
     if not directory_path or not fileName:
         return jsonify({'error': 'directory_path y fileName son requeridos'}), 400
+
+    # Verificar si el directorio existe
+    if not os.path.exists(directory_path):
+        return {"error": f"El directorio {directory_path} no existe."}
 
     # Construir la ruta completa al archivo
     file_path = os.path.join(directory_path, fileName)
@@ -41,10 +50,38 @@ def getFileListService(directory_path):
     file_list = os.listdir(directory_path)
 
     if not file_list:
-        return jsonify({'error': 'El directorio no contiene archivos'}), 404
+        return jsonify({'message': 'El directorio no contiene archivos'}), 200
 
     return jsonify({'message': 'Lista de archivos obtenida con éxito', 'files': file_list}), 200
     
+# Obtener el NIG de un PDF
+def getNigFromFileService(file_path):
+    nig_pattern = r"NIG:\s*(\d{19})"
+    nig = None
+
+    # Verifica si el archivo existe
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'Archivo no encontrado'}), 404
+
+    try:
+        # Abrir el archivo PDF y procesar cada página
+        with pdfplumber.open(file_path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    # Buscar el patrón del NIG en el texto extraído
+                    match = re.search(nig_pattern, text)
+                    if match:
+                        nig = match.group(1)  # Capturar solo los 19 dígitos
+                        break
+        if nig:
+            return jsonify({'message': f'NIG {nig} encontrado con éxito', 'nig': nig}), 200
+        else:
+            return {"error": "NIG no encontrado en el archivo."}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # Eliminar un archivo dado su nombre
 @handle_error
 def deleteFileService(fileName):
@@ -64,11 +101,117 @@ def createFoldersService(directory_path):
         return jsonify({'error': 'directory_path es requerido'}), 400
 
     # Definir los nombres de las carpetas a crear
-    folders = ['Notificaciones recibidas', 'Notificaciones enviadas', 'Notificaciones sin enviar']
+    folders = ['Notificaciones recibidas', 'Notificaciones enviadas']
 
-    # Crear cada carpeta dentro del directorio especificado
-    for folder_name in folders:
-        folder_path = os.path.join(directory_path, folder_name)
-        os.makedirs(folder_path, exist_ok=True)  # Crea la carpeta si no existe
 
-    return jsonify({'message': 'Carpetas creadas con éxito', 'folders': folders}), 201
+    try:
+        # Crear cada carpeta dentro del directorio especificado
+        for folder_name in folders:
+            folder_path = os.path.join(directory_path, folder_name)
+            os.makedirs(folder_path, exist_ok=True)  # Crea la carpeta si no existe
+
+        return jsonify({'message': 'Carpetas creadas con éxito', 'folders': folders}), 201
+    
+    except Exception as e:
+        return jsonify({'error': f'Error al crear carpetas: {str(e)}'}), 500
+
+# Servicio para enviar un correo electrónico
+@handle_error
+def sendEmailService(sender, password, recipient, subject, htmlBody, filePath):
+
+    # Lista de campos requeridos y su correspondiente valor
+    required_fields = {
+        'sender': sender,
+        'password': password,
+        'recipient': recipient,
+        'subject': subject,
+        'htmlBody': htmlBody
+    }
+
+    # Identificar los campos que faltan
+    missing_fields = [field for field, value in required_fields.items() if not value]
+
+    # Si faltan campos, devolver un mensaje de error específico
+    if missing_fields:
+        return jsonify({'error': f'Faltan los siguientes campos: {", ".join(missing_fields)}'}), 400
+
+    # Obtener el dominio del correo electrónico del remitente
+    sender_domain = sender.split('@')[-1].lower()
+
+    # Mapeo de dominios conocidos a sus servidores SMTP
+    smtp_servers = {
+        'outlook.com': 'smtp.office365.com',
+        'hotmail.com': 'smtp.office365.com',
+        'yahoo.com': 'smtp.mail.yahoo.com',
+        'yahoo.es': 'smtp.mail.yahoo.com',
+        'icloud.com': 'smtp.mail.me.com',
+        'me.com': 'smtp.mail.me.com',
+        'mac.com': 'smtp.mail.me.com',
+        'gmx.net': 'smtp.gmx.com',
+    }
+
+    # Obtener el servidor SMTP basado en el dominio
+    server = smtp_servers.get(sender_domain)
+
+    # Si no se encuentra el dominio en los comunes, aplicar la lógica genérica
+    if not server:
+        server = f'smtp.{sender_domain}'
+
+    # Configuración de Flask-Mail con los parámetros recibidos
+    mail_settings = {
+        "MAIL_SERVER": server,
+        "MAIL_PORT": 587,
+        "MAIL_USE_TLS": True,
+        "MAIL_USERNAME": sender,
+        "MAIL_PASSWORD": password,
+        "MAIL_DEFAULT_SENDER": sender
+    }
+
+    # Inicializar Mail con la configuración específica
+    app = current_app._get_current_object()
+    app.config.update(mail_settings)
+    mail = Mail(app)
+
+    try:
+        msg = Message(subject, recipients=[recipient])
+        msg.html = htmlBody  # El cuerpo del correo en formato HTML
+
+        # Manejar el archivo adjunto si se proporciona una ruta
+        if filePath:
+            if os.path.exists(filePath) and os.path.getsize(filePath) <= 25 * 1024 * 1024:  # Límite de 25 MB
+                with open(filePath, 'rb') as f:
+                    msg.attach(os.path.basename(filePath), 'application/octet-stream', f.read())
+            else:
+                return jsonify({'error': 'Archivo no encontrado o demasiado grande'}), 400
+
+        mail.send(msg)
+        return jsonify({'message': 'Correo enviado con éxito'}), 200
+    except smtplib.SMTPException as e:
+        return jsonify({'error': f'Error al enviar correo: {str(e)}'}), 500
+    
+# Servicio para mover un archivo a una carpeta dada
+@handle_error
+def moveFileService(file_path, target_directory):
+    # Verificar que los parámetros no sean None
+    if not file_path or not target_directory:
+        return jsonify({'error': 'file_path y target_directory son requeridos'}), 400
+
+    # Verificar si el archivo existe en la ruta dada
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'Archivo no encontrado'}), 404
+
+    # Verificar si el destino es un directorio válido
+    if not os.path.exists(target_directory):
+        return jsonify({'error': 'El directorio de destino no existe'}), 404
+    if not os.path.isdir(target_directory):
+        return jsonify({'error': 'La ruta de destino no es un directorio válido'}), 400
+
+    # Construir la ruta de destino completa con el nombre del archivo
+    destination_path = os.path.join(target_directory, os.path.basename(file_path))
+
+    # Mover el archivo al directorio de destino
+    try:
+        os.rename(file_path, destination_path)
+        return jsonify({'message': f'Archivo movido con éxito a {destination_path}'}), 200
+    except Exception as e:
+        return jsonify({'error': f'Error al mover el archivo: {str(e)}'}), 500

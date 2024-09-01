@@ -52,6 +52,23 @@ def getCaseService(id):
     else:
         return jsonify({'error': f'Caso {id} no encontrado'}), 404
 
+# Obtener un caso dado su NIG
+@handle_error
+def getCaseByNIGService(nig):
+    case = g.db.cases.find_one({'nig': nig})
+    if case:
+        return jsonify({
+            '_id': str(case['_id']),
+            'cliente': case['cliente'],
+            'expediente': case['expediente'],
+            'letrado': case['letrado'],
+            'dado en fecha': case['dado en fecha'],
+            'pago': case['pago'],
+            'nig': case['nig']
+        })
+    else:
+        return jsonify({'error': f'Caso con NIG {nig} no encontrado'}), 404
+
 # Crear nuevo caso
 @handle_error
 def createCaseService():
@@ -158,3 +175,10 @@ def deleteCaseService(id):
         return jsonify({'message': f'Caso {id} eliminado'})
     else:
         return jsonify({'error': f'Caso {id} no encontrado'}), 404
+    
+# Verificar si hay casos en la base de datos
+@handle_error
+def checkCasesDataService():
+    # Utiliza count_documents({}) para comprobar si existe al menos un caso
+    has_data = g.db.cases.count_documents({}) > 0
+    return jsonify({'hasData': has_data}), 200
