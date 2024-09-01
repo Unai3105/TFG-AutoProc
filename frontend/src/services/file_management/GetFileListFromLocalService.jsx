@@ -11,11 +11,17 @@ const GetFileListFromLocalService = async (directoryPath) => {
             'Authorization': `Bearer ${token}`,
         };
 
+        // Crear el cuerpo de la solicitud
+        const bodyContent = {
+            directory_path: directoryPath,
+        };
+
         // Opciones de la solicitud HTTP
         const reqOptions = {
-            url: `http://127.0.0.1:5000/notifications/list?directory_path=${encodeURIComponent(directoryPath)}`,
-            method: "GET",
+            url: `http://127.0.0.1:5000/notifications/list`,
+            method: "POST",
             headers: headersList,
+            data: bodyContent,
         };
 
         // Realizar la solicitud HTTP utilizando axios
@@ -24,6 +30,13 @@ const GetFileListFromLocalService = async (directoryPath) => {
         // Retornar los datos obtenidos
         return { success: true, data: response.data };
     } catch (error) {
+
+        // Si el token ha expirado o es inválido (401 Unauthorized)
+        if (error.response && error.response.status === 401) {
+            sessionStorage.removeItem('jwt');
+            return { success: false, tokenExpired: true, error: 'Sesión expirada. Por favor, inicie sesión de nuevo.' };
+        }
+
         // Manejar cualquier error que ocurra en todo el bloque try
         return { success: false, error: error.response?.data?.error || error.response.data };
     }

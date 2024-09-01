@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const GetFileFromDBService = async (uploadPath) => {
+const GetLawyerByNameService = async (name) => {
     try {
         // Obtener el token JWT desde sessionStorage
         const token = sessionStorage.getItem('jwt');
@@ -13,7 +13,7 @@ const GetFileFromDBService = async (uploadPath) => {
 
         // Opciones de la solicitud HTTP
         const reqOptions = {
-            url: `http://127.0.0.1:5000/${uploadPath}/`,
+            url: `http://127.0.0.1:5000/lawyers/name/${name}`,
             method: "GET",
             headers: headersList,
         };
@@ -24,9 +24,16 @@ const GetFileFromDBService = async (uploadPath) => {
         // Retornar los datos obtenidos
         return { success: true, data: response.data };
     } catch (error) {
+                
+        // Si el token ha expirado o es inválido (401 Unauthorized)
+        if (error.response && error.response.status === 401) {
+            sessionStorage.removeItem('jwt');
+            return { success: false, tokenExpired: true, error: 'Sesión expirada. Por favor, inicie sesión de nuevo.' };
+        }
+        
         // Manejar cualquier error que ocurra en todo el bloque try
-        return { success: false, error: error.response?.data?.error || error.response.data };
+        return { success: false, error: error.response?.data?.error || error.message };
     }
 };
 
-export default GetFileFromDBService;
+export default GetLawyerByNameService;

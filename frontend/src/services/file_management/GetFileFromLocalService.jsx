@@ -1,35 +1,36 @@
 import axios from 'axios';
 
-const ItemUpdadateService = async (uploadPath, newDataRow) => {
+const GetFileFromLocalService = async (directoryPath, fileName) => {
     try {
-        // Obtener el ID de los datos actualizados y el resto de los datos
-        const { _id, ...dataRow } = newDataRow;
-
         // Obtener el token JWT desde sessionStorage
         const token = sessionStorage.getItem('jwt');
 
         // Crear las cabeceras de la solicitud HTTP
         const headersList = {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
         };
 
-        // Convertir los datos actualizados en una cadena JSON
-        const bodyContent = JSON.stringify(dataRow);
+        // Crear el cuerpo de la solicitud
+        const bodyContent = {
+            directory_path: directoryPath,
+            fileName: fileName,
+        };
 
         // Opciones de la solicitud HTTP
         const reqOptions = {
-            url: `http://127.0.0.1:5000/${uploadPath}/${_id}`,
-            method: "PUT",
+            url: `http://127.0.0.1:5000/notifications/file`,
+            method: "POST",
             headers: headersList,
             data: bodyContent,
+            responseType: 'blob'  // Importante para manejar archivos binarios
         };
 
         // Realizar la solicitud HTTP utilizando axios
         const response = await axios.request(reqOptions);
 
-        // Retornar éxito y los datos recibidos en la respuesta
-        return { success: true, data: response.data };
+        // Retornar el archivo como blob
+        return { success: true, data: response.data, fileName };
 
     } catch (error) {
                 
@@ -40,8 +41,11 @@ const ItemUpdadateService = async (uploadPath, newDataRow) => {
         }
         
         // Manejar cualquier error que ocurra en todo el bloque try
-        return { success: false, error: error.response?.data?.msg || error.response?.data?.error || error.response.data };
+        const blob = error.response.data;
+        const errorText = await blob.text();
+        const errorMsg = JSON.parse(errorText).error
+        return { success: false, error: errorMsg || error };
     }
 };
 
-export default ItemUpdadateService;
+export default GetFileFromLocalService;

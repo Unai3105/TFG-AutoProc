@@ -1,10 +1,7 @@
 import axios from 'axios';
 
-const ItemUpdadateService = async (uploadPath, newDataRow) => {
+const MoveFileService = async (filePath, targetDirectory) => {
     try {
-        // Obtener el ID de los datos actualizados y el resto de los datos
-        const { _id, ...dataRow } = newDataRow;
-
         // Obtener el token JWT desde sessionStorage
         const token = sessionStorage.getItem('jwt');
 
@@ -14,13 +11,16 @@ const ItemUpdadateService = async (uploadPath, newDataRow) => {
             'Authorization': `Bearer ${token}`,
         };
 
-        // Convertir los datos actualizados en una cadena JSON
-        const bodyContent = JSON.stringify(dataRow);
+        // Crear el cuerpo de la solicitud HTTP
+        const bodyContent = JSON.stringify({
+            file_path: filePath,
+            target_directory: targetDirectory,
+        });
 
         // Opciones de la solicitud HTTP
         const reqOptions = {
-            url: `http://127.0.0.1:5000/${uploadPath}/${_id}`,
-            method: "PUT",
+            url: `http://127.0.0.1:5000/notifications/move_file`,
+            method: "POST",
             headers: headersList,
             data: bodyContent,
         };
@@ -44,4 +44,4 @@ const ItemUpdadateService = async (uploadPath, newDataRow) => {
     }
 };
 
-export default ItemUpdadateService;
+export default MoveFileService;
