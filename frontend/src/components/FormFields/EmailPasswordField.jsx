@@ -4,35 +4,35 @@ import { Message } from 'primereact/message';
 import { classNames } from 'primereact/utils';
 import { Tooltip } from 'primereact/tooltip';
 
-const LocalPathField = ({ formik }) => {
+const EmailPasswordField = ({ formik }) => {
 
-    const errorId = 'localPath-info';
+    const errorId = 'emailPassword-info';
 
     return (
         <div className="p-inputgroup flex-1">
             <span className="p-inputgroup-addon">
-                <i className="pi pi-folder"></i>
+                <i className="pi pi-lock"></i>
             </span>
             <InputText
-                id="localPath"
-                name="localPath"
-                type="text"
-                placeholder="C:\Users\user\Desktop\exampleFolder"
-                value={formik.values.localPath}
+                id="emailPassword"
+                name="emailPassword"
+                type="password"
+                placeholder="Contraseña del email"
+                value={formik.values.emailPassword}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className={classNames({ 'p-invalid': formik.touched.localPath && formik.errors.localPath })}
+                className={classNames({ 'p-invalid': formik.touched.emailPassword && formik.errors.emailPassword })}
             />
-            {formik.touched.localPath && formik.errors.localPath && (
+            {formik.touched.emailPassword && formik.errors.emailPassword && (
                 <div className="p-ml-2">
                     <Message
                         id={errorId}
                         severity="error"
-                        text={formik.errors.localPath}
+                        text={formik.errors.emailPassword}
                     />
                     <Tooltip 
                         target={`#${errorId}`} 
-                        content="Debe comenzar con una letra seguida de : y usar \ o / como separadores. Ej. C:\Users\user\Desktop\exampleFolder"
+                        content="Debe tener 16 caracteres. Esta contraseña es proporcionada por el proveedor del email generalmente."
                         placeholder="Right"
                         style={{ textAlign: 'center' }}
                     />
@@ -42,4 +42,4 @@ const LocalPathField = ({ formik }) => {
     );
 };
 
-export default LocalPathField;
+export default EmailPasswordField;

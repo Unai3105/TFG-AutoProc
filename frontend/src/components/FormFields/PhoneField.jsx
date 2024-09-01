@@ -4,35 +4,35 @@ import { Message } from 'primereact/message';
 import { classNames } from 'primereact/utils';
 import { Tooltip } from 'primereact/tooltip';
 
-const LocalPathField = ({ formik }) => {
+const PhoneField = ({ formik }) => {
 
-    const errorId = 'localPath-info';
+    const errorId = 'name-info';
 
     return (
         <div className="p-inputgroup flex-1">
             <span className="p-inputgroup-addon">
-                <i className="pi pi-folder"></i>
+                <i className="pi pi-phone"></i>
             </span>
             <InputText
-                id="localPath"
-                name="localPath"
+                id="phone"
+                name="phone"
                 type="text"
-                placeholder="C:\Users\user\Desktop\exampleFolder"
-                value={formik.values.localPath}
+                placeholder="Teléfono"
+                value={formik.values.phone}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className={classNames({ 'p-invalid': formik.touched.localPath && formik.errors.localPath })}
+                className={classNames({ 'p-invalid': formik.touched.phone && formik.errors.phone })}
             />
-            {formik.touched.localPath && formik.errors.localPath && (
+            {formik.touched.phone && formik.errors.phone && (
                 <div className="p-ml-2">
                     <Message
                         id={errorId}
                         severity="error"
-                        text={formik.errors.localPath}
+                        text={formik.errors.phone}
                     />
                     <Tooltip 
                         target={`#${errorId}`} 
-                        content="Debe comenzar con una letra seguida de : y usar \ o / como separadores. Ej. C:\Users\user\Desktop\exampleFolder"
+                        content="Número de 9 dígitos que comience por 6/7/8/9. Opcionalmente con prefijo +34. Ej. +34 723456789"
                         placeholder="Right"
                         style={{ textAlign: 'center' }}
                     />
@@ -42,4 +42,4 @@ const LocalPathField = ({ formik }) => {
     );
 };
 
-export default LocalPathField;
+export default PhoneField;

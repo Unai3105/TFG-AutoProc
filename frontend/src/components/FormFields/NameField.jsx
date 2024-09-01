@@ -2,8 +2,12 @@ import React from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 import { classNames } from 'primereact/utils';
+import { Tooltip } from 'primereact/tooltip';
 
 const NameField = ({ formik }) => {
+
+    const errorId = 'name-info';
+
     return (
         <div className="p-inputgroup flex-1">
             <span className="p-inputgroup-addon">
@@ -16,9 +20,24 @@ const NameField = ({ formik }) => {
                 placeholder="Nombre"
                 value={formik.values.name}
                 onChange={formik.handleChange}
-                className={classNames({ 'p-invalid': formik.errors.name })}
+                onBlur={formik.handleBlur}
+                className={classNames({ 'p-invalid': formik.touched.name && formik.errors.name })}
             />
-            {formik.errors.name ? <Message severity="error" text={formik.errors.name} /> : null}
+            {formik.touched.name && formik.errors.name && (
+                <div className="p-ml-2">
+                    <Message
+                        id={errorId}
+                        severity="error"
+                        text={formik.errors.name}
+                    />
+                    <Tooltip 
+                        target={`#${errorId}`} 
+                        content="Solo puede contener letras, espacios, guiones o apóstrofes."
+                        placeholder="Right"
+                        style={{ textAlign: 'center' }}
+                    />
+                </div>
+            )}
         </div>
     );
 };

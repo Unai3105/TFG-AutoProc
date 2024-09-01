@@ -4,35 +4,35 @@ import { Message } from 'primereact/message';
 import { classNames } from 'primereact/utils';
 import { Tooltip } from 'primereact/tooltip';
 
-const LocalPathField = ({ formik }) => {
+const AddressField = ({ formik }) => {
 
-    const errorId = 'localPath-info';
+    const errorId = 'address-info';
 
     return (
         <div className="p-inputgroup flex-1">
             <span className="p-inputgroup-addon">
-                <i className="pi pi-folder"></i>
+                <i className="pi pi-home"></i>
             </span>
             <InputText
-                id="localPath"
-                name="localPath"
+                id="address"
+                name="address"
                 type="text"
-                placeholder="C:\Users\user\Desktop\exampleFolder"
-                value={formik.values.localPath}
+                placeholder="Dirección"
+                value={formik.values.address}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className={classNames({ 'p-invalid': formik.touched.localPath && formik.errors.localPath })}
+                className={classNames({ 'p-invalid': formik.touched.address && formik.errors.address })}
             />
-            {formik.touched.localPath && formik.errors.localPath && (
+            {formik.touched.address && formik.errors.address && (
                 <div className="p-ml-2">
                     <Message
                         id={errorId}
                         severity="error"
-                        text={formik.errors.localPath}
+                        text={formik.errors.address}
                     />
                     <Tooltip 
                         target={`#${errorId}`} 
-                        content="Debe comenzar con una letra seguida de : y usar \ o / como separadores. Ej. C:\Users\user\Desktop\exampleFolder"
+                        content="Solo puede contener letras, números, espacios y los caracteres . , ' - /."
                         placeholder="Right"
                         style={{ textAlign: 'center' }}
                     />
@@ -42,4 +42,4 @@ const LocalPathField = ({ formik }) => {
     );
 };
 
-export default LocalPathField;
+export default AddressField;
