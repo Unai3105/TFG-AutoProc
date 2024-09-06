@@ -3,7 +3,6 @@ import { Card } from 'primereact/card';
 import { Avatar } from 'primereact/avatar';
 import { Divider } from 'primereact/divider';
 import { Button } from 'primereact/button';
-import { Toast } from 'primereact/toast';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 
@@ -23,6 +22,7 @@ import FormatPhoneService from '../services/formatting/FormatPhoneService';
 import UpdateUserService from '../services/authentication/UpdateUserService';
 import CreateFoldersService from '../services/file_management/CreateFoldersService';
 import SessionExpiredService from '../services/authentication/SesionExpiredService';
+import { useToast } from '../context/ToastProvider';
 
 const ProfileSettingsComponent = ({ onLocalPathChange }) => {
 
@@ -51,8 +51,8 @@ const ProfileSettingsComponent = ({ onLocalPathChange }) => {
     // URL de la imagen del avatar
     const avatarUrl = 'favicon.png';
 
-    // Crear una referencia para el Toast
-    const toast = useRef(null);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast } = useToast();
 
     // Obtener los datos del usuario al cargar el componente
     useEffect(() => {
@@ -157,7 +157,7 @@ const ProfileSettingsComponent = ({ onLocalPathChange }) => {
             // Salir del modo de edición después de guardar
             setIsEditing(false);
 
-            toast.current.show({
+            showToast({
                 severity: 'success',
                 summary: 'Éxito',
                 detail: `Perfil actualizado correctamente.`,
@@ -175,7 +175,7 @@ const ProfileSettingsComponent = ({ onLocalPathChange }) => {
 
                 if (result2.success) {
                     setTimeout(() => {
-                        toast.current.show({
+                        showToast({
                             severity: 'success',
                             summary: 'Éxito',
                             detail: `Carpetas creadas correctamente.`,
@@ -183,7 +183,7 @@ const ProfileSettingsComponent = ({ onLocalPathChange }) => {
                         });
                     }, 300);
                 } else {
-                    toast.current.show({
+                    showToast({
                         severity: 'error',
                         summary: 'Error',
                         detail: `No se pudieron crear las carpetas. ${result2.error}`,
@@ -192,7 +192,7 @@ const ProfileSettingsComponent = ({ onLocalPathChange }) => {
                 }
             }
         } else {
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: `No se pudo actualizar el perfil. ${result.error}`,
@@ -208,7 +208,6 @@ const ProfileSettingsComponent = ({ onLocalPathChange }) => {
 
     return (
         <SessionExpiredService sessionExpired={sessionExpired}>
-            <Toast ref={toast} />
             <div style={{
                 position: 'fixed', // Fija el contenedor
                 top: 75, // Deja espacio debajo del NavBar
@@ -311,17 +310,21 @@ const ProfileSettingsComponent = ({ onLocalPathChange }) => {
                                     {userData.phone}
                                 </p>
                             )}
+                            
                             <Divider />
-                            <p className="p-text-center">
-                                {userData.localPath ? (
-                                    userData.localPath
-                                ) : (
-                                    <>
-                                        <i className="pi pi-exclamation-triangle" style={{ marginRight: '0.5rem', color: 'orange' }}></i>
-                                        Directorio de trabajo local no especificado
-                                    </>
-                                )}
-                            </p>
+
+                            {userData.localPath ? (
+                                <div className="p-text-center">
+                                    <i className="pi pi-folder" style={{ marginRight: '0.5rem' }}></i>
+                                    {userData.localPath}
+                                </div>
+                            ) : (
+                                <div className="p-text-center">
+                                    <i className="pi pi-exclamation-triangle" style={{ marginRight: '0.5rem', color: 'orange' }}></i>
+                                    Directorio de trabajo local no especificado
+                                </div>
+                            )}
+
                             <Button
                                 icon="pi pi-pencil"
                                 label="Editar"

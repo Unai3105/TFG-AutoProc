@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Toast } from 'primereact/toast';
+import React, { useState, useEffect } from 'react';
 import { TabView, TabPanel } from 'primereact/tabview';
 import NavBar from '../components/NavBar/NavBar';
 import DataTableComponent from '../components/DataTableComponent';
 import FileUploadComponent from '../components/FileUploadComponent';
+import { useToast } from '../context/ToastProvider';
 
 const DBUploadPage = () => {
 
@@ -12,8 +12,8 @@ const DBUploadPage = () => {
     const [casesData, setCasesData] = useState([]);
     const [activeIndex, setActiveIndex] = useState(0); // Estado para la pestaña activa
 
-    // Hook para el Toast
-    const toast = useRef(null);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast } = useToast();
 
     // Función que maneja la carga de archivos para Lawyers
     const uploadLawyersFile = (loadedData) => {
@@ -21,7 +21,7 @@ const DBUploadPage = () => {
             setLawyersData(loadedData);
         } catch (error) {
             const errorMsg = 'Error al cargar los datos de abogados.';
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: errorMsg,
@@ -45,7 +45,7 @@ const DBUploadPage = () => {
             setCasesData(loadedData);
         } catch (error) {
             const errorMsg = 'Error al cargar los datos de casos.';
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: errorMsg,
@@ -57,7 +57,6 @@ const DBUploadPage = () => {
     return (
         <div>
             <NavBar />
-            <Toast ref={toast} />
             <div style={{
                 position: 'fixed', // Fija el contenedor
                 top: 75, // Deja espacio debajo del NavBar

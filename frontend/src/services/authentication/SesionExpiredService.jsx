@@ -1,17 +1,19 @@
 import React, { useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
-import { Toast } from 'primereact/toast';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../context/ToastProvider';
 
 const SessionExpiredService = ({ children, sessionExpired }) => {
-    const toast = useRef(null);
+
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast } = useToast();
+
     const navigate = useNavigate();
 
     useEffect(() => {
         if (sessionExpired) {
             // Mostrar el toast
-            toast.current.show({
+            showToast({
                 severity: 'warn',
                 summary: 'Sesión expirada',
                 detail: 'Será redirigido al inicio de sesión. Por favor, inicie sesión de nuevo.',
@@ -27,12 +29,14 @@ const SessionExpiredService = ({ children, sessionExpired }) => {
 
     return (
         <>
-            {ReactDOM.createPortal(
-                <Toast ref={toast} />,
-                document.getElementById('toast-portal')
-            )}
             {sessionExpired ? (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh',
+                    zIndex: 9999
+                }}>
                     <ProgressSpinner />
                 </div>
             ) : (

@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
-import { Toast } from 'primereact/toast';
 import * as Yup from 'yup';
 
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/AuthProvider';
+import { useToast } from '../context/ToastProvider';
 import GoToAuthComponent from '../components/FormComponents/GoToAuthComponent';
 import SignupButton from '../components/FormComponents/SignupButton';
 import NameField from '../components/FormFields/NameField';
@@ -19,11 +19,8 @@ const RegisterPage = () => {
     // Hook para navegar
     const navigate = useNavigate();
 
-    // Hook para el Toast
-    const toast = useRef(null);
-
-    // Hook de autenticación
-    const { setAuth } = useContext(AuthContext);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast } = useToast();
 
     // Borrar el token JWT de sessionStorage cuando se monta el componente
     useEffect(() => {
@@ -82,7 +79,7 @@ const RegisterPage = () => {
                 setAuth({ token: access_token, isAuthenticated: true });
 
                 // Mostrar Toast de éxito
-                toast.current.show({
+                showToast({
                     severity: 'success', // Tipo de mensaje
                     summary: 'Éxito', // Título del mensaje
                     detail: 'Te has registrado correctamente', // Detalles del mensaje
@@ -94,7 +91,7 @@ const RegisterPage = () => {
 
                 // Redirigir a /home después de 1.5 segundos tras el registro exitoso
                 setTimeout(() => {
-                    navigate('/home');
+                    navigate('/info');
                 }, 1500);
 
             } catch (error) {
@@ -103,7 +100,7 @@ const RegisterPage = () => {
                     setErrors({ general: errorMsg });
 
                     // Mostrar Toast de error
-                    toast.current.show({
+                    showToast({
                         severity: 'error', // Tipo de mensaje
                         summary: 'Error', // Título del mensaje
                         detail: errorMsg, // Detalles del mensaje
@@ -117,7 +114,7 @@ const RegisterPage = () => {
                     console.error('Error desconocido, por favor intente de nuevo más tarde.', error);
 
                     // Mostrar Toast de error
-                    toast.current.show({
+                    showToast({
                         severity: 'error',
                         summary: 'Error',
                         detail: 'Error desconocido, por favor intente de nuevo más tarde.',
@@ -145,7 +142,6 @@ const RegisterPage = () => {
 
             {/* Formulario de registro */}
             <form onSubmit={formik.handleSubmit} className="p-fluid">
-                <Toast ref={toast} />
                 <NameField formik={formik} />
                 <LastNamesField formik={formik} />
                 <EmailField formik={formik} />

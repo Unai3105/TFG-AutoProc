@@ -9,22 +9,22 @@ import NotificationsPage from '../pages/NotificationsPage'
 import InfoPage from '../pages/InfoPage'
 import ProfileSettingsPage from '../pages/ProfileSettingsPage'
 import PrivateRoute from './PrivateRoute';
-import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider } from '../context/AuthProvider';
 const AppRoutes = () => {
     return (
         <AuthProvider>
             <Router>
                 <Routes>
                     {/* Ruta raíz que redirige a la página de inicio de sesión */}
-                    <Route path="/" element={<Navigate to="/login" />} />
+                    <Route path="/" element={<Navigate to="/home" />} />
 
                     {/* Rutas públicas */}
+                    <Route path="/home" element={<HomePage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
                     {/* Rutas protegidas por autenticación */}
                     <Route path="/" element={<PrivateRoute />}>
-                        <Route path="/home" element={<HomePage />} />
                         <Route path="/databaseUpload" element={<DBUploadPage />} />
                         <Route path="/databaseManage" element={<DBManagePage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />

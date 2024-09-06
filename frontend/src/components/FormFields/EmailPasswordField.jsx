@@ -32,7 +32,7 @@ const EmailPasswordField = ({ formik }) => {
                     />
                     <Tooltip 
                         target={`#${errorId}`} 
-                        content="Debe tener 16 caracteres. Esta contraseña es proporcionada por el proveedor del email generalmente."
+                        content="Debe tener 16 caracteres. Generalmente esta contraseña es proporcionada por el proveedor del email."
                         placeholder="Right"
                         style={{ textAlign: 'center' }}
                     />

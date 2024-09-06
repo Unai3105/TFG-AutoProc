@@ -4,15 +4,14 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import GetAllItemsService from '../services/item_management/GetAllItemsService'
 import ItemDeleteService from '../services/item_management/ItemDeleteService';
 import ItemUpdateService from '../services/item_management/ItemUpdateService';
 import ValidateItemService from '../services/validation/ValidateItemService';
-import CreateToastDialogComponent from './CreateToastDialogComponent';
 import SessionExpiredService from '../services/authentication/SesionExpiredService';
+import { useToast } from '../context/ToastProvider';
 
 const EditableDataTableComponent = ({ path }) => {
 
@@ -31,8 +30,8 @@ const EditableDataTableComponent = ({ path }) => {
     // Estado para manejar la visibilidad de los diálogos
     const [visible, setVisible] = useState(false);
 
-    // Referencia para notificaciones
-    const toast = useRef(null);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast, showInteractiveToast } = useToast();
 
     // Clave única de las filas
     const dataKey = '_id';
@@ -55,19 +54,17 @@ const EditableDataTableComponent = ({ path }) => {
             } else {
                 if (result.error == 'Ningún abogado encontrado' || 'Ningún caso encontrado') {
                     // Muestra advertencia si la llamada falla
-                    toast.current.show({
+                    showInteractiveToast({
                         severity: 'warn',
                         summary: 'Advertencia',
-                        detail: CreateToastDialogComponent(
-                            `${result.error}. Por favor, cargue una base de datos.`,
-                            () => window.location.href = '/databaseUpload',
-                            "Ir a Cargar bases de datos"
-                        ),
+                        message: `${result.error}. Por favor, cargue una base de datos.`,
+                        onClick: () => window.location.href = '/databaseUpload',
+                        linkText: 'Ir a Cargar bases de datos',
                         life: 5000
                     });
                 } else {
                     // Muestra error si la llamada falla
-                    toast.current.show({
+                    showToast({
                         severity: 'error',
                         summary: 'Error',
                         detail: result.error,
@@ -223,10 +220,12 @@ const EditableDataTableComponent = ({ path }) => {
 
                 setMessageData(validationResponse.errors);
                 const errorMsg = 'Alguno de los datos no es válido.'
-                toast.current.show({
+                showInteractiveToast({
                     severity: 'error',
-                    summary: 'Error de Validación',
-                    detail: CreateToastDialogComponent(errorMsg, () => setVisible(true)),
+                    summary: 'Error',
+                    message: errorMsg,
+                    onClick: () => setVisible(true),
+                    linkText: 'Ver detalles',
                     life: 5000
                 });
                 console.error(errorMsg, validationResponse.errors);
@@ -250,7 +249,7 @@ const EditableDataTableComponent = ({ path }) => {
 
                 const entityType = path === 'lawyers' ? 'Abogado' : path === 'cases' ? 'Caso' : 'Elemento';
 
-                toast.current.show({
+                showToast({
                     severity: 'success',
                     summary: 'Éxito',
                     detail: `${entityType} actualizado correctamente`,
@@ -258,7 +257,7 @@ const EditableDataTableComponent = ({ path }) => {
                 });
             } else {
                 // Manejar el caso en que la actualización falle
-                toast.current.show({
+                showToast({
                     severity: 'error',
                     summary: 'Error',
                     detail: `No se pudo actualizar el ${path === 'lawyers' ? 'Abogado' : 'Caso'}. ${response.error}`,
@@ -268,7 +267,7 @@ const EditableDataTableComponent = ({ path }) => {
             }
         } catch (error) {
             // Manejar cualquier error inesperado
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: `Error inesperado: ${error.message}`,
@@ -300,7 +299,7 @@ const EditableDataTableComponent = ({ path }) => {
                 setData(_data);
 
                 const entityType = path === 'lawyers' ? 'Abogado' : path === 'cases' ? 'Caso' : 'Elemento';
-                toast.current.show({
+                showToast({
                     severity: 'success',
                     summary: 'Éxito',
                     detail: `${entityType} eliminado correctamente`,
@@ -308,7 +307,7 @@ const EditableDataTableComponent = ({ path }) => {
                 });
             } else {
                 // Manejar el caso en que la eliminación falle
-                toast.current.show({
+                showToast({
                     severity: 'error',
                     summary: 'Error',
                     detail: `No se pudo eliminar el ${path === 'lawyers' ? 'Abogado' : 'Caso'}. ${response.error}`,
@@ -318,7 +317,7 @@ const EditableDataTableComponent = ({ path }) => {
             }
         } catch (error) {
             // Manejar cualquier error inesperado
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: `Error inesperado: ${error.message}`,
@@ -330,10 +329,6 @@ const EditableDataTableComponent = ({ path }) => {
 
     return (
         <SessionExpiredService sessionExpired={sessionExpired}>
-            {ReactDOM.createPortal(
-                <Toast ref={toast} />,
-                document.getElementById('toast-portal')
-            )}
             <Dialog header="Detalles de los datos cargados" visible={visible} style={{ width: '50vw' }} onHide={() => setVisible(false)}>
                 <pre>{JSON.stringify(messageData, null, 2)}</pre>
             </Dialog>

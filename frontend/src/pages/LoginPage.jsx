@@ -2,7 +2,6 @@ import React, { useRef, useContext, useEffect } from 'react';
 import { Divider } from 'primereact/divider';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
-import { Toast } from 'primereact/toast';
 import * as Yup from 'yup';
 
 import GoogleLoginComponent from '../components/FormComponents/GoogleLoginComponent';
@@ -11,15 +10,16 @@ import GoToAuthComponent from '../components/FormComponents/GoToAuthComponent';
 import EmailField from '../components/FormFields/EmailField';
 import PasswordField from '../components/FormFields/PasswordField';
 import LoginService from '../services/authentication/LoginService';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/AuthProvider';
+import { useToast } from '../context/ToastProvider';
 
 const LoginPage = () => {
 
     // Hook para navegar
     const navigate = useNavigate();
 
-    // Hook para el Toast
-    const toast = useRef(null);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast } = useToast();
 
     // Hook de autenticación
     const { setAuth } = useContext(AuthContext);
@@ -63,7 +63,7 @@ const LoginPage = () => {
                 const successMsg = 'Inicio de sesión exitoso';
 
                 // Mostrar Toast de éxito
-                toast.current.show({
+                showToast({
                     severity: 'success',
                     summary: 'Éxito',
                     detail: successMsg,
@@ -75,7 +75,7 @@ const LoginPage = () => {
 
                 // Redirigir a /home después de 1.5 segundos tras el inicio de sesión exitoso
                 setTimeout(() => {
-                    navigate('/home');
+                    navigate('/info');
                 }, 1500);
 
             } catch (error) {
@@ -85,7 +85,7 @@ const LoginPage = () => {
                     const errorMsg = error.response.data.error;
 
                     // Mostrar Toast de error
-                    toast.current.show({
+                    showToast({
                         severity: 'error',
                         summary: 'Error',
                         detail: errorMsg,
@@ -99,7 +99,7 @@ const LoginPage = () => {
                     const unknowErrorMsg = 'Error desconocido, por favor intente de nuevo más tarde'
 
                     // Mostrar Toast de error
-                    toast.current.show({
+                    showToast({
                         severity: 'error',
                         summary: 'Error',
                         detail: unknowErrorMsg,
@@ -142,7 +142,6 @@ const LoginPage = () => {
 
             {/* Formulario de inicio de sesión */}
             <form onSubmit={formik.handleSubmit} className="p-fluid">
-                <Toast ref={toast} />
                 <EmailField formik={formik} />
                 <PasswordField formik={formik} showStrengthIndicator={false} />
                 <LoginButton />

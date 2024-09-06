@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Card } from 'primereact/card';
-import { Toast } from 'primereact/toast';
 import GetFileListFromLocalService from '../services/file_management/GetFileListFromLocalService';
 import GetUserService from '../services/authentication/GetUserService';
-import CreateToastDialogComponent from '../components/CreateToastDialogComponent'
 import SessionExpiredService from '../services/authentication/SesionExpiredService';
+import { useToast } from '../context/ToastProvider';
 
 const LocalFolderViewerComponent = forwardRef(({ subFolder, onFilesUpdate }, ref) => {
 
@@ -15,8 +13,11 @@ const LocalFolderViewerComponent = forwardRef(({ subFolder, onFilesUpdate }, ref
     // Estado para el contenido de la carpeta
     const [folderContent, setFolderContent] = useState([]);
 
-    // Referencia para notificaciones
-    const toast = useRef(null);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast, showInteractiveToast } = useToast();
+
+    // Estado para controlar si el toast de configuración ya fue mostrado
+    const hasShownToast = useRef(false);
 
     useEffect(() => {
         loadUserDataAndFolder();
@@ -30,88 +31,76 @@ const LocalFolderViewerComponent = forwardRef(({ subFolder, onFilesUpdate }, ref
     }));
 
     const loadUserDataAndFolder = async () => {
-        try {
-            // Obtener datos del usuario
-            const userData = await GetUserService();
+
+        const userData = await GetUserService();
+
+        // Sesión expirada
+        if (userData.tokenExpired) {
+            setSessionExpired(true);
+            return;
+        }
+
+        // Obtener la ruta local de la carpeta
+        const localPath = userData.data.localPath;
+
+        if (localPath) {
+            // Construir la ruta completa de la carpeta
+            const completeFolderPath = `${localPath}\\${subFolder}`;
+
+            // Cargar contenido de la carpeta
+            const result = await GetFileListFromLocalService(completeFolderPath);
 
             // Sesión expirada
-            if (userData.tokenExpired) {
+            if (result.tokenExpired) {
                 setSessionExpired(true);
                 return;
             }
 
-            // Obtener la ruta local de la carpeta
-            const localPath = userData.data.localPath;
+            if (result.success) {
 
-            if (localPath) {
-                // Construir la ruta completa de la carpeta
-                const completeFolderPath = `${localPath}\\${subFolder}`;
+                if (result.data.message != 'El directorio no contiene archivos') {
+                    // Actualizamos el estado con el contenido de la carpeta
+                    setFolderContent(result.data.files);
 
-                // Cargar contenido de la carpeta
-                const result = await GetFileListFromLocalService(completeFolderPath);
-
-                // Sesión expirada
-                if (result.tokenExpired) {
-                    setSessionExpired(true);
-                    return;
-                }
-
-                if (result.success) {
-
-                    if (result.data.message != 'El directorio no contiene archivos') {
-                        // Actualizamos el estado con el contenido de la carpeta
-                        setFolderContent(result.data.files);
-
-                        // Actualizamos el estado en el componente padre si se necesita
-                        if (onFilesUpdate) {
-                            onFilesUpdate(result.data.files);
-                        }
-                    } else {
-                        setFolderContent([]);
+                    // Actualizamos el estado en el componente padre si se necesita
+                    if (onFilesUpdate) {
+                        onFilesUpdate(result.data.files);
                     }
-
                 } else {
-                    if (result.data.error !== 'El directorio no contiene archivos') {
-                        toast.current.show({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: result.error,
-                            life: 3000
-                        });
-                    }
+                    setFolderContent([]);
                 }
+
             } else {
+                if (result.data.error !== 'El directorio no contiene archivos') {
+                    showToast({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: result.error,
+                        life: 3000
+                    });
+                }
+            }
+        } else {
+            if (!hasShownToast.current) {
                 setTimeout(() => {
-                    toast.current.show({
+                    showInteractiveToast({
                         severity: 'warn',
                         summary: 'Advertencia',
-                        detail: CreateToastDialogComponent(
-                            'Debes configurar el directorio local de trabajo.',
-                            () => window.location.href = '/profileSettings',
-                            "Ir a Configuración"
-                        ),
+                        message: 'Debes configurar el directorio local de trabajo.',
+                        onClick: () => window.location.href = '/profileSettings',
+                        linkText: 'Ir a Configuración',
                         life: 4750,
                         style: { maxWidth: '350px' }
                     });
                 }, 200);
+
+                hasShownToast.current = true;
             }
-        } catch (error) {
-            console.error('Error al cargar los datos del usuario:', error);
-            toast.current.show({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudo cargar el contenido de la carpeta.',
-                life: 3000
-            });
         }
     };
 
     return (
         <SessionExpiredService sessionExpired={sessionExpired}>
-            {ReactDOM.createPortal(
-                <Toast ref={toast} />,
-                document.getElementById('toast-portal')
-            )}
             <Card>
                 <div style={{
                     maxHeight: '275px', // Altura máxima del contenedor antes de habilitar el scroll
@@ -133,7 +122,7 @@ const LocalFolderViewerComponent = forwardRef(({ subFolder, onFilesUpdate }, ref
                                         overflow: 'hidden', // Oculta el contenido que excede el contenedor
                                         display: '-webkit-box', // Caja flexible para el texto
                                         WebkitBoxOrient: 'vertical', // Orientación vertical
-                                        WebkitLineClamp: 2, // Limita el texto a 3 líneas
+                                        WebkitLineClamp: 2, // Limita el texto a 2 líneas
                                         textOverflow: 'ellipsis', // Muestra "..." si el texto es demasiado largo
                                     }}>
                                         {file}

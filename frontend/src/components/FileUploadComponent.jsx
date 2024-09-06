@@ -1,20 +1,19 @@
 import React, { useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
 import { FileUpload } from 'primereact/fileupload';
-import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import FileInfoComponent from './FileInfoComponent';
 import FileProcessingService from '../services/file_management/FileProcessingService';
 import FileUploadService from '../services/file_management/FileUploadService';
-import CreateToastDialogComponent from '../components/CreateToastDialogComponent';
 import SessionExpiredService from '../services/authentication/SesionExpiredService';
+import { useToast } from '../context/ToastProvider';
 
 const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
 
     // Estado para manejar la sesión expirada
     const [sessionExpired, setSessionExpired] = useState(false);
 
-    const toast = useRef(null);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast, showInteractiveToast } = useToast();
 
     const fileUploadRef = useRef(null);
 
@@ -57,10 +56,12 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                 });
                 setMessageData(result);
                 const errorMsg = 'Error al procesar el archivo.'
-                toast.current.show({
+                showInteractiveToast({
                     severity: 'error',
                     summary: 'Error',
-                    detail: CreateToastDialogComponent(errorMsg, () => setVisible(true)),
+                    message: errorMsg,
+                    onClick: () => setVisible(true),
+                    linkText: 'Ver más detalles',
                     life: 5000
                 });
                 console.error(errorMsg, result);
@@ -69,7 +70,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
     }
 
     const onFileUpload = () => {
-        toast.current.show({
+        showToast({
             severity: 'success',
             summary: 'Éxito',
             detail: 'File Uploaded',
@@ -81,7 +82,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
 
     const uploadHandler = async () => {
         if (!fileData || !fileData.file) {
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: 'No hay archivos seleccionados para subir.',
@@ -108,7 +109,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                 });
                 // Casos creados
                 if (result.data.created_ids.length > 0) {
-                    toast.current.show({
+                    showToast({
                         severity: 'success',
                         summary: 'Éxito',
                         detail: 'Archivo subido exitosamente',
@@ -120,10 +121,12 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                 if (result.data.warnings && result.data.warnings.length > 0) {
                     setMessageData(result.data.warnings);
                     const warningMsg = 'Algunos casos ya estaban registrados.'
-                    toast.current.show({
+                    showInteractiveToast({
                         severity: 'warn',
                         summary: 'Advertencia',
-                        detail: CreateToastDialogComponent(warningMsg, () => setVisible(true)),
+                        message: warningMsg,
+                        onClick: () => setVisible(true),
+                        linkText: 'Ver más detalles',
                         life: 5000
                     });
                     console.info(warningMsg, result.data.warnings);
@@ -136,10 +139,12 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                 });
                 setMessageData(result.error);
                 const errorMsg = 'Error al subir el archivo.'
-                toast.current.show({
+                showInteractiveToast({
                     severity: 'error',
                     summary: 'Error',
-                    detail: CreateToastDialogComponent(errorMsg, () => setVisible(true)),
+                    message: errorMsg,
+                    onClick: () => setVisible(true),
+                    linkText: 'Ver más detalles',
                     life: 5000
                 });
                 console.error(errorMsg, result.error);
@@ -150,7 +155,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
                 severity: 'danger',
                 statusText: 'Error'
             });
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: `Error inesperado: ${error.message}`,
@@ -172,7 +177,7 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
     }
 
     const onFileError = () => {
-        toast.current.show({
+        showToast({
             severity: 'error',
             summary: 'Error',
             detail: 'File Uploaded',
@@ -187,10 +192,6 @@ const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
 
     return (
         <SessionExpiredService sessionExpired={sessionExpired}>
-            {ReactDOM.createPortal(
-                <Toast ref={toast} />,
-                document.getElementById('toast-portal')
-            )}
             <Dialog header="Detalles de los datos cargados" visible={visible} style={{ width: '50vw' }} onHide={() => setVisible(false)}>
                 <pre>{JSON.stringify(messageData, null, 2)}</pre>
             </Dialog>

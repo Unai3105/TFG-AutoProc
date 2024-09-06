@@ -9,7 +9,7 @@ const ProfileSettingsPage = () => {
     // Función para manejar el cambio de localPath
     const handleLocalPathChange = (newLocalPath) => {
         console.log('ProfileSettingsPage')
-        setLocalPath(newLocalPath); // Actualiza el estado del localPath
+        setLocalPath(newLocalPath);
     };
 
     return (

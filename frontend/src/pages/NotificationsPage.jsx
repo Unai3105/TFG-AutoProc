@@ -9,10 +9,8 @@ import { Divider } from 'primereact/divider';
 import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
 import { Editor } from 'primereact/editor';
-import { Toast } from 'primereact/toast';
 import NavBar from '../components/NavBar/NavBar';
 import LocalFolderViewerComponent from '../components/LocalFolderViewerComponent';
-import CreateToastDialogComponent from '../components/CreateToastDialogComponent';
 import GetUserService from '../services/authentication/GetUserService';
 import GetNIGFromFileService from '../services/file_management/GetNIGFromFileService';
 import GetCaseByNIGService from '../services/item_management/GetCaseByNIGService';
@@ -21,6 +19,7 @@ import SendEmailService from '../services/email/SendEmailService';
 import MoveFileService from '../services/email/MoveFileService';
 import CheckDatabaseService from '../services/item_management/CheckDataService';
 import SessionExpiredService from '../services/authentication/SesionExpiredService';
+import { useToast } from '../context/ToastProvider';
 
 const NotificationsPage = () => {
 
@@ -72,8 +71,8 @@ const NotificationsPage = () => {
     // Referencia para el componente LocalFolderViewer
     const localFolderViewerRef = useRef(null);
 
-    // Referencia para notificaciones
-    const toast = useRef(null);
+    // Obtener la función para mostrar toasts desde el ToastProvider
+    const { showToast, showInteractiveToast } = useToast();
 
     // Efecto para comprobar si existe alguna base de datos cargada
     useEffect(() => {
@@ -102,16 +101,14 @@ const NotificationsPage = () => {
             } else {
 
                 setDBsLoaded(false);
-
-                toast.current.show({
+                
+                showInteractiveToast({
                     severity: 'warn',
                     summary: 'Advertencia',
-                    detail: CreateToastDialogComponent(
-                        'Por favor, cargue todas las bases de datos para acceder a esta función.',
-                        () => window.location.href = '/databaseUpload',
-                        "Ir a Cargar bases de datos"
-                    ),
-                    life: 5000
+                    message: 'Por favor, cargue todas las bases de datos para acceder a esta función.',
+                    onClick: () => window.location.href = '/databaseUpload',
+                    linkText: 'Ir a Cargar bases de datos',
+                    life: 4750
                 });
             }
         };
@@ -134,7 +131,7 @@ const NotificationsPage = () => {
     const onPreviewButton = () => {
 
         if (fileNames.length == 0) {
-            toast.current.show({
+            showToast({
                 severity: 'warn',
                 summary: 'Advertencia',
                 detail: 'No hay archivos para enviar',
@@ -209,14 +206,12 @@ const NotificationsPage = () => {
 
                 const emailData = emailDataMap[fileName];
 
-                console.log('emailData:', emailData)
-
                 if (emailData) {
 
                     // Array para almacenar errores específicos de este archivo
                     const fileErrors = [];
 
-                    const response = await SendEmailService(emailData.sender, password, 'miklorres@gmail.com', emailData.subject, emailData.body, emailData.filePath);
+                    const response = await SendEmailService(emailData.sender, emailData.emailPassword, emailData.receiver, emailData.subject, emailData.body, emailData.filePath);
 
                     // Sesión expirada
                     if (response.tokenExpired) {
@@ -268,7 +263,7 @@ const NotificationsPage = () => {
                 }
             }
         } catch (error) {
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: 'Error durante el envío de correos.',
@@ -282,31 +277,29 @@ const NotificationsPage = () => {
             setErrorDetails(errors);
 
             if (errorCount === 0) {
-                toast.current.show({
+                showToast({
                     severity: 'success',
                     summary: 'Éxito',
                     detail: 'Todos los correos fueron enviados con éxito',
                     life: 3000
                 });
             } else if (successCount === 0) {
-                toast.current.show({
+                showInteractiveToast({
                     severity: 'error',
                     summary: 'Error',
-                    detail: CreateToastDialogComponent(
-                        'Todos los correos fallaron al enviarse.',
-                        () => setShowErrorDialog(true)
-                    ),
+                    message: 'Todos los correos fallaron al enviarse.',
+                    onClick: () => setShowErrorDialog(true),
+                    linkText: 'Ver más detalles',
                     life: 3000
                 });
             } else {
                 setErrorDetails(errors);
-                toast.current.show({
+                showInteractiveToast({
                     severity: 'warn',
                     summary: 'Advertencia',
-                    detail: CreateToastDialogComponent(
-                        'Algunos correos fueron enviados con éxito, pero otros fallaron.',
-                        () => setShowErrorDialog(true)
-                    ),
+                    message: 'Algunos correos fueron enviados con éxito, pero otros fallaron.',
+                    onClick: () => setShowErrorDialog(true),
+                    linkText: 'Ver más detalles',
                     life: 5000
                 });
             }
@@ -370,6 +363,7 @@ const NotificationsPage = () => {
 
             const emailData = {
                 sender: userData.data.email,
+                emailPassword: userData.data.emailPassword,
                 receiver: lawyerData.data.email,
                 subject: subject,
                 body: getEmailBody(
@@ -389,7 +383,7 @@ const NotificationsPage = () => {
                 [fileName]: emailData
             }));
         } catch (error) {
-            toast.current.show({
+            showToast({
                 severity: 'error',
                 summary: 'Error',
                 detail: error?.data?.message || error?.message || error || String(error),
@@ -522,9 +516,8 @@ const NotificationsPage = () => {
             const emailData = emailDataMap[selectedEmail];
 
             if (emailData) {
-                const password = 'elhw lqic ncdc dkpe';
 
-                const response = await SendEmailService('uroa3105@gmail.com', password, 'miklorres@gmail.com', emailData.subject, emailData.body, emailData.filePath);
+                const response = await SendEmailService(emailData.sender, emailData.emailPassword, emailData.receiver, emailData.subject, emailData.body, emailData.filePath);
 
                 // Sesión expirada
                 if (response.tokenExpired) {
@@ -544,7 +537,7 @@ const NotificationsPage = () => {
 
                     if (response2.success) {
                         console.log(response2.data.message);
-                        toast.current.show({
+                        showToast({
                             severity: 'success',
                             summary: 'Éxito',
                             detail: 'El correo fue enviado y el archivo fue movido correctamente.',
@@ -552,7 +545,7 @@ const NotificationsPage = () => {
                         });
                     } else {
                         console.error(`Error al mover el archivo ${emailData.fileName}:`, response2.error);
-                        toast.current.show({
+                        showToast({
                             severity: 'error',
                             summary: 'Error',
                             detail: `Error al mover el archivo ${emailData.fileName}.`,
@@ -561,7 +554,7 @@ const NotificationsPage = () => {
                     }
                 } else {
                     console.error(`Error al enviar correo para ${emailData.fileName}:`, response.data.error);
-                    toast.current.show({
+                    showToast({
                         severity: 'error',
                         summary: 'Error',
                         detail: `Error al enviar correo para ${emailData.fileName}:`,
@@ -570,7 +563,7 @@ const NotificationsPage = () => {
                 }
             } else {
                 console.error(`No se encontraron datos de correo para ${emailData.fileName}`);
-                toast.current.show({
+                showToast({
                     severity: 'error',
                     summary: 'Error',
                     detail: `No se encontraron datos de correo para ${emailData.fileName}`,
@@ -591,7 +584,6 @@ const NotificationsPage = () => {
 
     return (
         <SessionExpiredService sessionExpired={sessionExpired}>
-            <Toast ref={toast} />
             <NavBar />
             <div style={{
                 position: 'fixed', // Fija el contenedor

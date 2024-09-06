@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menubar } from 'primereact/menubar';
 import { Badge } from 'primereact/badge';
@@ -44,7 +44,7 @@ const Navbar = ({ localPath }) => {
                     }
 
                     if (result.success) {
-                        if (result.data.message != 'El directorio no contiene archivos') {
+                        if (result.data.message !== 'El directorio no contiene archivos') {
                             // Contar el número de archivos PDF en la carpeta
                             const pdfCount = result.data.files.filter(file => file.endsWith('.pdf')).length;
                             setNotificationCount(pdfCount);
@@ -70,13 +70,6 @@ const Navbar = ({ localPath }) => {
     }, [localPath]);
 
     const items = [
-        {
-            label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 20px' }}>
-                <i className="pi pi-home" style={{ marginRight: '8px' }}></i>
-                Inicio
-            </div>,
-            command: () => navigate('/home')
-        },
         {
             label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 20px' }}>
                 <i className="pi pi-database" style={{ marginRight: '8px' }}></i>
@@ -109,7 +102,7 @@ const Navbar = ({ localPath }) => {
                         <Badge
                             value={notificationCount}
                             severity="danger"
-                            style={{ position: 'absolute', top: '-10px', right: '-30px' }}
+                            style={{ position: 'absolute', top: '-10px', right: '-33px' }}
                         />
                     )}
                 </div>
@@ -121,7 +114,23 @@ const Navbar = ({ localPath }) => {
                 <i className="pi pi-info-circle" style={{ marginRight: '8px' }}></i>
                 Información
             </div>,
-            command: () => navigate('/info')
+            items: [
+                {
+                    label: 'Instrucciones',
+                    icon: 'pi pi-book',
+                    command: () => navigate('/info?section=instrucciones')
+                },
+                {
+                    label: 'Links de Interés',
+                    icon: 'pi pi-link',
+                    command: () => navigate('/info?section=links')
+                },
+                {
+                    label: 'Juzgados',
+                    icon: 'pi pi-map-marker',
+                    command: () => navigate('/info?section=juzgados')
+                }
+            ]
         },
         {
             label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 20px' }}>
@@ -161,7 +170,7 @@ const Navbar = ({ localPath }) => {
                     left: 0,
                     width: '100%',
                     zIndex: 1000,
-                    justifyContent: 'center'
+                    justifyContent: 'center',
                 }}
             />
         </SessionExpiredService>
