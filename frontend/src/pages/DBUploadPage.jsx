@@ -10,10 +10,27 @@ const DBUploadPage = () => {
     // Definir estados separados para cada tabla
     const [lawyersData, setLawyersData] = useState([]);
     const [casesData, setCasesData] = useState([]);
-    const [activeIndex, setActiveIndex] = useState(0); // Estado para la pestaña activa
+
+    // Obtener el valor del parámetro `tab` desde la URL
+    const getPathFromURL = () => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('path');
+        return tab === 'cases' ? 1 : 0;
+    };
+
+    const [activeIndex, setActiveIndex] = useState(getPathFromURL()); // Estado para la pestaña activa
 
     // Obtener la función para mostrar toasts desde el ToastProvider
     const { showToast } = useToast();
+
+    // Efecto para reiniciar los datos cuando cambia la pestaña activa
+    useEffect(() => {
+        if (activeIndex === 0) {
+            setCasesData([]); // Reinicia los datos de la segunda pestaña
+        } else if (activeIndex === 1) {
+            setLawyersData([]); // Reinicia los datos de la primera pestaña
+        }
+    }, [activeIndex]);
 
     // Función que maneja la carga de archivos para Lawyers
     const uploadLawyersFile = (loadedData) => {
@@ -29,15 +46,6 @@ const DBUploadPage = () => {
             console.log(errorMsg);
         }
     };
-
-    // Efecto para reiniciar los datos cuando cambia la pestaña activa
-    useEffect(() => {
-        if (activeIndex === 0) {
-            setCasesData([]); // Reinicia los datos de la segunda pestaña
-        } else if (activeIndex === 1) {
-            setLawyersData([]); // Reinicia los datos de la primera pestaña
-        }
-    }, [activeIndex]);
 
     // Función que maneja la carga de archivos para casos
     const uploadCasesFile = (loadedData) => {

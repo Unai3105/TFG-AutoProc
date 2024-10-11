@@ -412,7 +412,6 @@ const NotificationsPage = () => {
                     <hr>
                     <p style="font-size: 8pt; color: gray;">
                         CONFIDENCIALIDAD. El contenido de esta comunicación, así como el de toda la documentación anexa, es confidencial y va dirigido únicamente al destinatario de la misma. En el supuesto de que usted no fuera el destinatario, le solicitamos que nos lo indique y no comunique su contenido a terceros, procediendo a su destrucción.<br>
-                        CONFIDENTIALITY. The content of this communication and any attached information is confidential and exclusively for the use of the addressee. If you are not the addressee, we ask you to notify the sender, not pass its content on to another person, and please be sure you destroy it.
                     </p>
                 </body>
             </html>`;
@@ -530,7 +529,7 @@ const NotificationsPage = () => {
                     const response2 = await MoveFileService(emailData.filePath, emailData.targetDirectory);
 
                     // Sesión expirada
-                    if (resporesponse2nse.tokenExpired) {
+                    if (response2.tokenExpired) {
                         setSessionExpired(true);
                         return;
                     }

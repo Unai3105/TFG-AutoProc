@@ -187,6 +187,7 @@ def sendEmailService(sender, password, recipient, subject, htmlBody, filePath):
         mail.send(msg)
         return jsonify({'message': 'Correo enviado con éxito'}), 200
     except smtplib.SMTPException as e:
+        print(e)
         return jsonify({'error': f'Error al enviar correo: {str(e)}'}), 500
     
 # Servicio para mover un archivo a una carpeta dada

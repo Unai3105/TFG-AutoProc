@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { Toast } from 'primereact/toast';
 
 const ToastContext = createContext();
@@ -49,10 +48,7 @@ export const ToastProvider = ({ children }) => {
     return (
         <ToastContext.Provider value={{ showToast, showInteractiveToast }}>
             {children}
-            {ReactDOM.createPortal(
-                <Toast ref={toast} style={{ zIndex: 10000 }} />,
-                document.body // Renderiza los toasts en el body para evitar problemas de apilamiento
-            )}
+            <Toast ref={toast}></Toast>
         </ToastContext.Provider>
     );
 };

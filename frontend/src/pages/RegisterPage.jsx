@@ -22,6 +22,9 @@ const RegisterPage = () => {
     // Obtener la función para mostrar toasts desde el ToastProvider
     const { showToast } = useToast();
 
+    // Hook de autenticación
+    const { setAuth } = useContext(AuthContext);
+    
     // Borrar el token JWT de sessionStorage cuando se monta el componente
     useEffect(() => {
         sessionStorage.removeItem('jwt');

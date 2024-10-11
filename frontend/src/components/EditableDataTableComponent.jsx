@@ -58,7 +58,7 @@ const EditableDataTableComponent = ({ path }) => {
                         severity: 'warn',
                         summary: 'Advertencia',
                         message: `${result.error}. Por favor, cargue una base de datos.`,
-                        onClick: () => window.location.href = '/databaseUpload',
+                        onClick: () => window.location.href = `/databaseUpload?path=${path}`,
                         linkText: 'Ir a Cargar bases de datos',
                         life: 5000
                     });

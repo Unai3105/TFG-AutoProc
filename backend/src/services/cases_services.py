@@ -1,6 +1,11 @@
 from flask import jsonify, request, g
 from bson import ObjectId
 
+from services.aes_encryption_service import AESEncryptionService
+
+# Instanciar el servicio de cifrado AES
+aes_encryption_service = AESEncryptionService()
+
 # Decorador para tratar excepciones
 def handle_error(func):
     def wrapper(*args, **kwargs):
@@ -20,15 +25,23 @@ def case_exists(case_nig):
 @handle_error
 def getAllCasesService():
     cases = []
-    for doc in g.db.cases.find():
+    for case in g.db.cases.find():
+
+        # Descifrar los datos sensibles
+        case['cliente'] = aes_encryption_service.decrypt_data(case['cliente'])
+        case['expediente'] = aes_encryption_service.decrypt_data(case['expediente'])
+        case['letrado'] = aes_encryption_service.decrypt_data(case['letrado'])
+        case['dado en fecha'] = aes_encryption_service.decrypt_data(case['dado en fecha'])
+        case['pago'] = aes_encryption_service.decrypt_data(case['pago'])
+
         cases.append({
-            '_id': str(ObjectId(doc['_id'])),
-            'cliente': doc['cliente'],
-            'expediente': doc['expediente'],
-            'letrado': doc['letrado'],
-            'dado en fecha': doc['dado en fecha'],
-            'pago': doc['pago'],
-            'nig': doc['nig']
+            '_id': str(ObjectId(case['_id'])),
+            'cliente': case['cliente'],
+            'expediente': case['expediente'],
+            'letrado': case['letrado'],
+            'dado en fecha': case['dado en fecha'],
+            'pago': case['pago'],
+            'nig': case['nig']
         })
     if cases:
         return jsonify(cases)
@@ -40,6 +53,14 @@ def getAllCasesService():
 def getCaseService(id):
     case = g.db.cases.find_one({'_id': ObjectId(id)})
     if case:
+
+        # Descifrar los datos sensibles
+        case['cliente'] = aes_encryption_service.decrypt_data(case['cliente'])
+        case['expediente'] = aes_encryption_service.decrypt_data(case['expediente'])
+        case['letrado'] = aes_encryption_service.decrypt_data(case['letrado'])
+        case['dado en fecha'] = aes_encryption_service.decrypt_data(case['dado en fecha'])
+        case['pago'] = aes_encryption_service.decrypt_data(case['pago'])
+
         return jsonify({
             '_id': str(case['_id']),
             'cliente': case['cliente'],
@@ -57,6 +78,14 @@ def getCaseService(id):
 def getCaseByNIGService(nig):
     case = g.db.cases.find_one({'nig': nig})
     if case:
+
+        # Descifrar los datos sensibles
+        case['cliente'] = aes_encryption_service.decrypt_data(case['cliente'])
+        case['expediente'] = aes_encryption_service.decrypt_data(case['expediente'])
+        case['letrado'] = aes_encryption_service.decrypt_data(case['letrado'])
+        case['dado en fecha'] = aes_encryption_service.decrypt_data(case['dado en fecha'])
+        case['pago'] = aes_encryption_service.decrypt_data(case['pago'])
+
         return jsonify({
             '_id': str(case['_id']),
             'cliente': case['cliente'],
@@ -82,6 +111,13 @@ def createCaseService():
     # Verificar que el correo electrónico no esté registrado
     if case_exists(data['nig']):
         return jsonify({'error': 'El caso ya existe'}), 400
+
+    # Cifrar los datos sensibles antes de subir el caso
+    data['cliente'] = aes_encryption_service.encrypt_data(data['cliente'])
+    data['expediente'] = aes_encryption_service.encrypt_data(data['expediente'])
+    data['letrado'] = aes_encryption_service.encrypt_data(data['letrado'])
+    data['dado en fecha'] = aes_encryption_service.encrypt_data(data['dado en fecha'])
+    data['pago'] = aes_encryption_service.encrypt_data(data['pago'])
 
     # Insertar el nuevo caso en la base de datos
     id = g.db.cases.insert_one(data).inserted_id
@@ -110,6 +146,13 @@ def uploadCasesService():
         if case_exists(case['nig']):
             warnings.append({'case': case, 'message': 'El caso ya existe'})
             continue
+
+        # Cifrar los datos sensibles antes de subir el caso
+        case['cliente'] = aes_encryption_service.encrypt_data(case['cliente'])
+        case['expediente'] = aes_encryption_service.encrypt_data(case['expediente'])
+        case['letrado'] = aes_encryption_service.encrypt_data(case['letrado'])
+        case['dado en fecha'] = aes_encryption_service.encrypt_data(case['dado en fecha'])
+        case['pago'] = aes_encryption_service.encrypt_data(case['pago'])
 
         # Insertar el nuevo caso en la base de datos
         id = g.db.cases.insert_one(case).inserted_id
@@ -152,6 +195,13 @@ def updateCaseService(id):
     # Verificar que todos los campos requeridos estén presentes
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Faltan campos requeridos'}), 400
+
+    # Cifrar los datos sensibles antes de subir el caso
+    data['cliente'] = aes_encryption_service.encrypt_data(data['cliente'])
+    data['expediente'] = aes_encryption_service.encrypt_data(data['expediente'])
+    data['letrado'] = aes_encryption_service.encrypt_data(data['letrado'])
+    data['dado en fecha'] = aes_encryption_service.encrypt_data(data['dado en fecha'])
+    data['pago'] = aes_encryption_service.encrypt_data(data['pago'])
 
     result = g.db.cases.update_one({'_id': ObjectId(id)}, {"$set": data})
     

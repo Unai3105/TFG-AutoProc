@@ -1,9 +1,16 @@
 from flask import jsonify, request, g
 from bson import ObjectId
 from flask_jwt_extended import create_access_token
-import bcrypt
 
 from config.mongo import mongo
+from services.hash_encryption_service import HashEncryptionService
+from services.aes_encryption_service import AESEncryptionService
+
+# Instanciar el servicio de cifrado Hash
+hashing_service = HashEncryptionService()
+
+# Instanciar el servicio de cifrado AES
+aes_encryption_service = AESEncryptionService()
 
 # Decorador para tratar excepciones
 def handle_error(func):
@@ -30,6 +37,21 @@ def email_exists(email):
 def getAllUsersService():
     users = []
     for user in g.db.users.find():
+            
+        # Descifrar los demás campos sensibles
+        if 'emailPassword' in user and user['emailPassword']:
+            user['emailPassword'] = aes_encryption_service.decrypt_data(user['emailPassword'])
+        if 'phone' in user and user['phone']:
+            user['phone'] = aes_encryption_service.decrypt_data(user['phone'])
+        if 'address' in user and user['address']:
+            user['address'] = aes_encryption_service.decrypt_data(user['address'])
+        if 'postalCode' in user and user['postalCode']:
+            user['postalCode'] = aes_encryption_service.decrypt_data(user['postalCode'])
+        if 'city' in user and user['city']:
+            user['city'] = aes_encryption_service.decrypt_data(user['city'])
+        if 'localPath' in user and user['localPath']:
+            user['localPath'] = aes_encryption_service.decrypt_data(user['localPath'])
+
         users.append({
             '_id': str(ObjectId(user['_id'])),
             'name': user['name'],
@@ -52,7 +74,23 @@ def getAllUsersService():
 @handle_error
 def getUserService(id):
     user = g.db.users.find_one({'_id': ObjectId(id)})
+
     if user:
+
+        # Descifrar los demás campos sensibles
+        if 'emailPassword' in user and user['emailPassword']:
+            user['emailPassword'] = aes_encryption_service.decrypt_data(user['emailPassword'])
+        if 'phone' in user and user['phone']:
+            user['phone'] = aes_encryption_service.decrypt_data(user['phone'])
+        if 'address' in user and user['address']:
+            user['address'] = aes_encryption_service.decrypt_data(user['address'])
+        if 'postalCode' in user and user['postalCode']:
+            user['postalCode'] = aes_encryption_service.decrypt_data(user['postalCode'])
+        if 'city' in user and user['city']:
+            user['city'] = aes_encryption_service.decrypt_data(user['city'])
+        if 'localPath' in user and user['localPath']:
+            user['localPath'] = aes_encryption_service.decrypt_data(user['localPath'])
+
         return jsonify({
             '_id': str(user['_id']),
             'name': user['name'],
@@ -87,10 +125,8 @@ def createUserService():
 
     try:
         # Cifrar la contraseña antes de guardar
-        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-        data['password'] = hashed_password.decode('utf-8')
+        data['password'] = hashing_service.hash_data(data['password'])
 
-        # Si se proporcionan los demás campos opcionales, se añadirán automaticamente
         # Insertar el nuevo usuario en la base de datos
         user_id = g.db.users.insert_one(data).inserted_id
     except Exception as e:
@@ -135,12 +171,18 @@ def updateUserService(id):
         if field not in data:
             return jsonify({'error': f'Falta el campo requerido: {field}'}), 400
         
-    # Cifrar la nueva contraseña si es que está siendo actualizada
+    # Cifrar la nueva contraseña con hash si es que está siendo actualizada
     if 'password' in data:
-        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-        data['password'] = hashed_password.decode('utf-8')
+        data['password'] = hashing_service.hash_data(data['password'])
 
-    # Si se proporcionan los demás campos opcionales, se añadirán automaticamente
+    # Cifrar los demás campos sensibles con AES
+    data['emailPassword'] = aes_encryption_service.encrypt_data(data.get('emailPassword'))
+    data['phone'] = aes_encryption_service.encrypt_data(data.get('phone'))
+    data['address'] = aes_encryption_service.encrypt_data(data.get('address'))
+    data['postalCode'] = aes_encryption_service.encrypt_data(data.get('postalCode'))
+    data['city'] = aes_encryption_service.encrypt_data(data.get('city'))
+    data['localPath'] = aes_encryption_service.encrypt_data(data.get('localPath'))
+
     # Actualizar los datos del usuario
     result = g.db.users.update_one({'_id': ObjectId(id)}, {"$set": data})
 
@@ -181,11 +223,14 @@ def loginUserService():
         return jsonify({'error': 'El correo electrónico no está registrado'}), 400
     
     # Verificar la contraseña
-    if bcrypt.checkpw(data['password'].encode('utf-8'), user['password'].encode('utf-8')):
+    if hashing_service.verify_data(data['password'], user['password']):
+        
         # Generar un token JWT
         access_token = create_access_token(identity=str(user['_id']))
+
         # La autenticación ha sido exitosa
         print('Inicio de sesion correcto')
+
         return jsonify({
             'message': f'El usuario {user["_id"]} inició sesión correctamente',
             'access_token': access_token

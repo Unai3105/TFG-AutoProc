@@ -1,6 +1,11 @@
 from flask import jsonify, request, g
 from bson import ObjectId
 
+from services.aes_encryption_service import AESEncryptionService
+
+# Instanciar el servicio de cifrado AES
+aes_encryption_service = AESEncryptionService()
+
 # Decorador para tratar excepciones
 def handle_error(func):
     def wrapper(*args, **kwargs):
@@ -20,12 +25,17 @@ def email_exists(email):
 @handle_error
 def getAllLawyersService():
     lawyers = []
-    for doc in g.db.lawyers.find():
+    for lawyer in g.db.lawyers.find():
+        
+        # Descifrar los demás campos sensibles
+        if 'phone' in lawyer and lawyer['phone']:
+            lawyer['phone'] = aes_encryption_service.decrypt_data(lawyer['phone'])
+
         lawyers.append({
-            '_id': str(ObjectId(doc['_id'])),
-            'name': doc['name'],
-            'email': doc['email'],
-            'phone': doc['phone']
+            '_id': str(ObjectId(lawyer['_id'])),
+            'name': lawyer['name'],
+            'email': lawyer['email'],
+            'phone': lawyer['phone']
         })
     if lawyers:
         return jsonify(lawyers)
@@ -37,6 +47,11 @@ def getAllLawyersService():
 def getLawyerService(id):
     lawyer = g.db.lawyers.find_one({'_id': ObjectId(id)})
     if lawyer:
+
+        # Descifrar los demás campos sensibles
+        if 'phone' in lawyer and lawyer['phone']:
+            lawyer['phone'] = aes_encryption_service.decrypt_data(lawyer['phone'])
+
         return jsonify({
             '_id': str(lawyer['_id']),
             'name': lawyer['name'],
@@ -52,6 +67,11 @@ def getLawyerByNameService(name):
     lawyer = g.db.lawyers.find_one({'name': name})
     
     if lawyer:
+
+        # Descifrar los demás campos sensibles
+        if 'phone' in lawyer and lawyer['phone']:
+            lawyer['phone'] = aes_encryption_service.decrypt_data(lawyer['phone'])
+
         return jsonify({
             '_id': str(lawyer['_id']),
             'name': lawyer['name'],
@@ -72,6 +92,9 @@ def createLawyerService():
     # Verificar que el correo electrónico no esté registrado
     if email_exists(data['email']):
         return jsonify({'error': 'El correo electrónico ya existe'}), 400
+
+    # Cifrar el campo phone antes de subir el abogado
+    data['phone'] = aes_encryption_service.encrypt_data(data['phone'])
 
     # Insertar el nuevo abogado en la base de datos
     id = g.db.lawyers.insert_one(data).inserted_id
@@ -102,6 +125,9 @@ def uploadLawyersService():
         if email_exists(lawyer['email']):
             warnings.append({'lawyer': lawyer, 'error': 'El correo electrónico ya existe'})
             continue
+
+        # Cifrar el campo phone antes de subir el abogado
+        lawyer['phone'] = aes_encryption_service.encrypt_data(lawyer['phone'])
 
         # Insertar el nuevo abogado en la base de datos
         id = g.db.lawyers.insert_one(lawyer).inserted_id
@@ -141,6 +167,9 @@ def updateLawyerService(id):
     data = request.json
     if 'name' not in data or 'email' not in data or 'phone' not in data:
         return jsonify({'error': 'Faltan campos requeridos'}), 400
+
+    # Cifrar el campo phone antes de actualizar el abogado
+    data['phone'] = aes_encryption_service.encrypt_data(data['phone'])
 
     result = g.db.lawyers.update_one({'_id': ObjectId(id)}, {"$set": data})
     
