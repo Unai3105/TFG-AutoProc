@@ -1,17 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState, useEffect } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import GetAllItemsService from '../services/item_management/GetAllItemsService'
-import ItemDeleteService from '../services/item_management/ItemDeleteService';
-import ItemUpdateService from '../services/item_management/ItemUpdateService';
-import ValidateItemService from '../services/validation/ValidateItemService';
-import SessionExpiredService from '../services/authentication/SesionExpiredService';
-import { useToast } from '../context/ToastProvider';
+import GetAllItemsService from '../../services/item_management/GetAllItemsService'
+import ItemDeleteService from '../../services/item_management/ItemDeleteService';
+import ItemUpdateService from '../../services/item_management/ItemUpdateService';
+import ValidateItemService from '../../services/validation/ValidateItemService';
+import SessionExpiredService from '../../services/authentication/SesionExpiredService';
+import { useToast } from '../../context/ToastProvider';
 
 const EditableDataTableComponent = ({ path }) => {
 

@@ -6,23 +6,23 @@ import { Button } from 'primereact/button';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 
-import GetUserService from '../services/authentication/GetUserService';
-import NameField from '../components/FormFields/NameField';
-import LastNamesField from '../components/FormFields/LastNamesField';
-import EmailField from '../components/FormFields/EmailField';
-import EmailPasswordField from '../components/FormFields/EmailPasswordField';
-import LocalPathField from '../components/FormFields/LocalPathField';
-import PhoneField from '../components/FormFields/PhoneField';
-import AddressField from '../components/FormFields/AddressField';
-import PostalCodeField from '../components/FormFields/PostalCodeField';
-import CityField from '../components/FormFields/CityField';
-import EmailPasswordSetupDialog from '../components/EmailPasswordSetupDialog';
-import FormatNameService from '../services/formatting/FormatNameService';
-import FormatPhoneService from '../services/formatting/FormatPhoneService';
-import UpdateUserService from '../services/authentication/UpdateUserService';
-import CreateFoldersService from '../services/file_management/CreateFoldersService';
-import SessionExpiredService from '../services/authentication/SesionExpiredService';
-import { useToast } from '../context/ToastProvider';
+import GetUserService from '../../services/authentication/GetUserService';
+import NameField from '../AutenticationComponents/FormFields/NameField';
+import LastNamesField from '../AutenticationComponents/FormFields/LastNamesField';
+import EmailField from '../AutenticationComponents/FormFields/EmailField';
+import EmailPasswordField from '../AutenticationComponents/FormFields/EmailPasswordField';
+import LocalPathField from '../AutenticationComponents/FormFields/LocalPathField';
+import PhoneField from '../AutenticationComponents/FormFields/PhoneField';
+import AddressField from '../AutenticationComponents/FormFields/AddressField';
+import PostalCodeField from '../AutenticationComponents/FormFields/PostalCodeField';
+import CityField from '../AutenticationComponents/FormFields/CityField';
+import EmailPasswordSetupDialog from './EmailPasswordSetupDialog';
+import FormatNameService from '../../services/formatting/FormatNameService';
+import FormatPhoneService from '../../services/formatting/FormatPhoneService';
+import UpdateUserService from '../../services/authentication/UpdateUserService';
+import CreateFoldersService from '../../services/file_management/CreateFoldersService';
+import SessionExpiredService from '../../services/authentication/SesionExpiredService';
+import { useToast } from '../../context/ToastProvider';
 
 const ProfileSettingsComponent = ({ onLocalPathChange }) => {
 

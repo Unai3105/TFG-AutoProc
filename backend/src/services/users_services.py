@@ -3,8 +3,8 @@ from bson import ObjectId
 from flask_jwt_extended import create_access_token
 
 from config.mongo import mongo
-from services.hash_encryption_service import HashEncryptionService
-from services.aes_encryption_service import AESEncryptionService
+from security.hash_encryption import HashEncryptionService
+from security.aes_encryption import AESEncryptionService
 
 # Instanciar el servicio de cifrado Hash
 hashing_service = HashEncryptionService()

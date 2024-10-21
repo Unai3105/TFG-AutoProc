@@ -2,10 +2,10 @@ import React, { useRef, useState } from 'react';
 import { FileUpload } from 'primereact/fileupload';
 import { Dialog } from 'primereact/dialog';
 import FileInfoComponent from './FileInfoComponent';
-import FileProcessingService from '../services/file_management/FileProcessingService';
-import FileUploadService from '../services/file_management/FileUploadService';
-import SessionExpiredService from '../services/authentication/SesionExpiredService';
-import { useToast } from '../context/ToastProvider';
+import FileProcessingService from '../../services/file_management/FileProcessingService';
+import FileUploadService from '../../services/file_management/FileUploadService';
+import SessionExpiredService from '../../services/authentication/SesionExpiredService';
+import { useToast } from '../../context/ToastProvider';
 
 const FileUploadComponent = ({ onFileLoad, uploadPath }) => {
 

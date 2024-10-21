@@ -71,7 +71,7 @@ const Navbar = ({ localPath }) => {
 
     const items = [
         {
-            label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 20px' }}>
+            label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 10px' }}>
                 <i className="pi pi-database" style={{ marginRight: '8px' }}></i>
                 Base de datos
             </div>,
@@ -90,12 +90,7 @@ const Navbar = ({ localPath }) => {
         },
         {
             label: (
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    position: 'relative',
-                    margin: '0 20px'
-                }}>
+                <div style={{ display: 'flex', alignItems: 'center', position: 'relative', margin: '0 40px 0 10px' }}>
                     <i className="pi pi-bell" style={{ marginRight: '8px' }}></i>
                     Notificaciones
                     {notificationCount !== null && notificationCount > 0 && (
@@ -110,7 +105,14 @@ const Navbar = ({ localPath }) => {
             command: () => navigate('/notifications')
         },
         {
-            label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 20px' }}>
+            label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 10px' }}>
+                <i className="pi pi-calendar" style={{ marginRight: '8px' }}></i>
+                Calendario
+            </div>,
+            command: () => navigate('/calendar')
+        },
+        {
+            label: <div style={{ display: 'flex', alignItems: 'center', margin: '0 10px' }}>
                 <i className="pi pi-info-circle" style={{ marginRight: '8px' }}></i>
                 Información
             </div>,

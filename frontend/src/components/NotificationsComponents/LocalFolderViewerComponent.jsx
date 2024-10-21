@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Card } from 'primereact/card';
-import GetFileListFromLocalService from '../services/file_management/GetFileListFromLocalService';
-import GetUserService from '../services/authentication/GetUserService';
-import SessionExpiredService from '../services/authentication/SesionExpiredService';
-import { useToast } from '../context/ToastProvider';
+import GetFileListFromLocalService from '../../services/file_management/GetFileListFromLocalService';
+import GetUserService from '../../services/authentication/GetUserService';
+import SessionExpiredService from '../../services/authentication/SesionExpiredService';
+import { useToast } from '../../context/ToastProvider';
 
 const LocalFolderViewerComponent = forwardRef(({ subFolder, onFilesUpdate }, ref) => {
 

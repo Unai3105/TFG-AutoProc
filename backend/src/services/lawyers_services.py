@@ -1,7 +1,7 @@
 from flask import jsonify, request, g
 from bson import ObjectId
 
-from services.aes_encryption_service import AESEncryptionService
+from security.aes_encryption import AESEncryptionService
 
 # Instanciar el servicio de cifrado AES
 aes_encryption_service = AESEncryptionService()

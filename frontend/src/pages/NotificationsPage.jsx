@@ -10,7 +10,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
 import { Editor } from 'primereact/editor';
 import NavBar from '../components/NavBar/NavBar';
-import LocalFolderViewerComponent from '../components/LocalFolderViewerComponent';
+import LocalFolderViewerComponent from '../components/NotificationsComponents/LocalFolderViewerComponent';
 import GetUserService from '../services/authentication/GetUserService';
 import GetNIGFromFileService from '../services/file_management/GetNIGFromFileService';
 import GetCaseByNIGService from '../services/item_management/GetCaseByNIGService';

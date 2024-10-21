@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TabView, TabPanel } from 'primereact/tabview';
 import NavBar from '../components/NavBar/NavBar';
-import EditableDataTableComponent from '../components/EditableDataTableComponent';
+import EditableDataTableComponent from '../components/DBManageComponents/EditableDataTableComponent';
 
 const DBManagePage = () => {
 

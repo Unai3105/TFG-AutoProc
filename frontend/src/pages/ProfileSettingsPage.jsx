@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import NavBar from '../components/NavBar/NavBar';
-import ProfileSettingsComponent from '../components/ProfileSettingsComponent';
+import ProfileSettingsComponent from '../components/ProfileSettingsComponents/ProfileSettingsComponent';
 
 const ProfileSettingsPage = () => {
 

@@ -1,16 +1,16 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
 import { AuthContext } from '../context/AuthProvider';
 import { useToast } from '../context/ToastProvider';
-import GoToAuthComponent from '../components/FormComponents/GoToAuthComponent';
-import SignupButton from '../components/FormComponents/SignupButton';
-import NameField from '../components/FormFields/NameField';
-import LastNamesField from '../components/FormFields/LastNamesField';
-import EmailField from '../components/FormFields/EmailField';
-import PasswordField from '../components/FormFields/PasswordField';
+import GoToAuthComponent from '../components/AutenticationComponents/FormComponents/GoToAuthComponent';
+import SignupButton from '../components/AutenticationComponents/FormComponents/SignupButton';
+import NameField from '../components/AutenticationComponents/FormFields/NameField';
+import LastNamesField from '../components/AutenticationComponents/FormFields/LastNamesField';
+import EmailField from '../components/AutenticationComponents/FormFields/EmailField';
+import PasswordField from '../components/AutenticationComponents/FormFields/PasswordField';
 import SignupService from '../services/authentication/SignupService';
 import FormatNameService from '../services/formatting/FormatNameService';
 

@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
-import GoogleLoginComponent from '../components/FormComponents/GoogleLoginComponent';
-import LoginButton from '../components/FormComponents/LoginButton'
-import GoToAuthComponent from '../components/FormComponents/GoToAuthComponent';
-import EmailField from '../components/FormFields/EmailField';
-import PasswordField from '../components/FormFields/PasswordField';
+import GoogleLoginComponent from '../components/AutenticationComponents/FormComponents/GoogleLoginComponent';
+import LoginButton from '../components/AutenticationComponents/FormComponents/LoginButton'
+import GoToAuthComponent from '../components/AutenticationComponents/FormComponents/GoToAuthComponent';
+import EmailField from '../components/AutenticationComponents/FormFields/EmailField';
+import PasswordField from '../components/AutenticationComponents/FormFields/PasswordField';
 import LoginService from '../services/authentication/LoginService';
 import { AuthContext } from '../context/AuthProvider';
 import { useToast } from '../context/ToastProvider';

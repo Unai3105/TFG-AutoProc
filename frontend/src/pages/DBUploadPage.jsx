@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { TabView, TabPanel } from 'primereact/tabview';
 import NavBar from '../components/NavBar/NavBar';
-import DataTableComponent from '../components/DataTableComponent';
-import FileUploadComponent from '../components/FileUploadComponent';
+import DataTableComponent from '../components/DBUploadComponents/DataTableComponent';
+import FileUploadComponent from '../components/DBUploadComponents/FileUploadComponent';
 import { useToast } from '../context/ToastProvider';
 
 const DBUploadPage = () => {
