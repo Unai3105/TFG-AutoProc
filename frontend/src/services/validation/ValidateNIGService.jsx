@@ -3,4 +3,4 @@ const ValidateNIGService = (nig) => {
     return nigRegex.test(nig);
 }
 
-export default ValidateNIGService
+export default ValidateNIGService;

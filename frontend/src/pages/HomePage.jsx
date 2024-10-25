@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import BenefitsComponent from '../components/HomeComponents/BenefitsComponent';
-import FunctionalitiesImages from '../components/HomeComponents/FunctionalitiesImages';
-import FloatingWindow from '../components/HomeComponents/FloatingWindow';
+import FunctionalitiesImagesComponent from '../components/HomeComponents/FunctionalitiesImagesComponent';
+import FloatingWindowComponent from '../components/HomeComponents/FloatingWindowComponent';
 
 const HomePage = () => {
 
@@ -47,7 +47,7 @@ const HomePage = () => {
                 {/* Breve texto informativo */}
                 <h2 className="fade-in">¿Por qué usar AutoProc?</h2>
                 <p className="fade-in" style={{ fontSize: '1.1em', lineHeight: '1.6em', color: '#555' }}>
-                    Nuestra aplicación está diseñada para facilitar la gestión de tus notificaciones y bases de datos,
+                    Nuestra aplicación está diseñada para facilitar la gestión de tus notificaciones y bases de datos como procurador,
                     automatizando el envío de emails y mejorando la eficiencia de tu trabajo diario. A continuación, te presentamos
                     las principales ventajas de utilizar nuestra herramienta.
                 </p>
@@ -57,7 +57,7 @@ const HomePage = () => {
 
                 {/* Imágenes de funcionalidades */}
                 <div className="fade-in">
-                    <FunctionalitiesImages />
+                    <FunctionalitiesImagesComponent />
                 </div>
 
                 {/* Texto de captación */}
@@ -70,7 +70,7 @@ const HomePage = () => {
             </div>
 
             {/* Ventana Flotante Fija */}
-            <FloatingWindow />
+            <FloatingWindowComponent />
         </div>
     );
 };

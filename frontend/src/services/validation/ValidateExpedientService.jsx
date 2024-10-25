@@ -3,4 +3,4 @@ const ValidateExpedientService = (expediente) => {
     return expedienteRegex.test(expediente);
 }
 
-export default ValidateExpedientService
+export default ValidateExpedientService;

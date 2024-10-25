@@ -3,4 +3,4 @@ const ValidateNameService = (name) => {
     return nameRegex.test(name);
 }
 
-export default ValidateNameService
+export default ValidateNameService;

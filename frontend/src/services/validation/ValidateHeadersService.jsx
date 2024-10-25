@@ -30,4 +30,4 @@ const ValidateHeadersService = (headers, expectedLawyersHeaders, expectedCasesHe
     }
 }
 
-export default ValidateHeadersService
+export default ValidateHeadersService;

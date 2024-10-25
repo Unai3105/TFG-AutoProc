@@ -24,6 +24,9 @@ const FileProcessingService = async (file, uploadPath) => {
         // Definir variable donde se guardará el json resultante
         let jsonData = [];
 
+        // Definir la variable donde se almacenarán los errores ocurridos
+        let allErrors = [];
+
         // Verificar si el archivo es de tipo JSON
         if (file.type === 'application/json') {
             // Decodificar y parsear el contenido JSON
@@ -92,10 +95,19 @@ const FileProcessingService = async (file, uploadPath) => {
         for (let item of jsonData) {
             const validationResult = ValidateItemService(item, uploadPath);
             if (!validationResult.success) {
-                return { ...validationResult, error: 'El archivo contiene datos inválidos.' };
+                allErrors.push(validationResult.errors);
+                // return { ...validationResult, error: 'El archivo contiene datos inválidos.' };
             }
         }
         
+        if (allErrors.length > 0) {
+            return {
+                success: false,
+                error: 'El archivo contiene datos inválidos.',
+                allErrors: allErrors
+            };
+        }
+
         console.log('Archivo validado correctamente.')
         // Retornar el JSON validado
         return { success: true, data: jsonData };

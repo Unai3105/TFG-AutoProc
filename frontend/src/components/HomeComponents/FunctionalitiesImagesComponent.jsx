@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image } from 'primereact/image';
 
-const FunctionalitiesImages = () => {
+const FunctionalitiesImagesComponent = () => {
     return (
         <div style={{ marginTop: '75px', textAlign: 'center' }}>
             <h2>Explora Nuestras Funcionalidades</h2>
@@ -29,4 +29,4 @@ const FunctionalitiesImages = () => {
     );
 };
 
-export default FunctionalitiesImages;
+export default FunctionalitiesImagesComponent;

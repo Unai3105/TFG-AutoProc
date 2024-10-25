@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from 'primereact/button';
 
-const FloatingWindow = () => {
+const FloatingWindowComponent = () => {
 
     return (
         <div>
@@ -48,4 +48,4 @@ const FloatingWindow = () => {
     )
 };
 
-export default FloatingWindow;
+export default FloatingWindowComponent;

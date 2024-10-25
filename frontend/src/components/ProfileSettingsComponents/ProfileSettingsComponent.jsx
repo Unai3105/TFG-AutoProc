@@ -6,7 +6,6 @@ import { Button } from 'primereact/button';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 
-import GetUserService from '../../services/authentication/GetUserService';
 import NameField from '../AutenticationComponents/FormFields/NameField';
 import LastNamesField from '../AutenticationComponents/FormFields/LastNamesField';
 import EmailField from '../AutenticationComponents/FormFields/EmailField';
@@ -17,6 +16,7 @@ import AddressField from '../AutenticationComponents/FormFields/AddressField';
 import PostalCodeField from '../AutenticationComponents/FormFields/PostalCodeField';
 import CityField from '../AutenticationComponents/FormFields/CityField';
 import EmailPasswordSetupDialog from './EmailPasswordSetupDialog';
+import GetUserService from '../../services/authentication/GetUserService';
 import FormatNameService from '../../services/formatting/FormatNameService';
 import FormatPhoneService from '../../services/formatting/FormatPhoneService';
 import UpdateUserService from '../../services/authentication/UpdateUserService';

@@ -62,7 +62,7 @@ const InfoPage = () => {
                     </div>
 
                     <h2 ref={courtsRef} style={{ borderBottom: '2px solid #ddd', paddingBottom: '10px', marginBottom: '35px' }}>
-                        Juzgados
+                        Juzgados del País Vasco
                     </h2>
 
                     <div style={{ marginBottom: '30px' }}>
