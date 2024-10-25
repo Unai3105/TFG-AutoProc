@@ -216,3 +216,87 @@ def moveFileService(file_path, target_directory):
         return jsonify({'message': f'Archivo movido con éxito a {destination_path}'}), 200
     except Exception as e:
         return jsonify({'error': f'Error al mover el archivo: {str(e)}'}), 500
+
+# Servicio para extraer fechas y detalles del PDF basado en estructura de contexto
+@handle_error
+def extractDateFromPDFService(file_path):
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'Archivo no encontrado'}), 404
+
+    # Patrón para encontrar la fecha
+    date_pattern = r"día (\d{2}) de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) del (\d{4})"
+    # Patrón para encontrar la hora
+    time_pattern = r"(\d{2}:\d{2}) horas"
+    # Patrón para encontrar el lugar (entre "en" y ", para dar comienzo")
+    place_pattern = r"horas, en (.*?), para dar comienzo"
+
+    # Mapeo de meses en texto a números
+    months_map = {
+        "enero": "01", "febrero": "02", "marzo": "03", "abril": "04", "mayo": "05", "junio": "06",
+        "julio": "07", "agosto": "08", "septiembre": "09", "octubre": "10", "noviembre": "11", "diciembre": "12"
+    }
+
+    try:
+        # Lista para almacenar detalles extraídos
+        extracted_details = []
+
+        # Abrir el archivo PDF y procesar cada página
+        with pdfplumber.open(file_path) as pdf:
+            for page_number, page in enumerate(pdf.pages, start=1):
+                text = page.extract_text()
+
+                # Limpiar texto
+                text = re.sub(r'\s+', ' ', text)
+
+                if text:
+                    # print(f"Texto completo extraído de la página {page_number}:\n{text}\n")
+
+                    # Buscar el párrafo que comienza con "1.-" y termina antes de "2.-"
+                    paragraph_pattern = r"1\.\-.*?(?=2\.\-|$)"
+                    paragraph_match = re.search(paragraph_pattern, text)
+                    if paragraph_match:
+                        paragraph_text = paragraph_match.group(0)
+                        # print(f"Párrafo de interés encontrado en la página {page_number}:\n{paragraph_text}\n")
+
+                        # Buscar la fecha
+                        date_match = re.search(date_pattern, paragraph_text)
+                        if date_match:
+                            day = date_match.group(1)
+                            month = months_map[date_match.group(2).lower()]
+                            year = date_match.group(3)
+                            date = f"{day}/{month}/{year}"
+                        else:
+                            date = "No especificada"
+
+                        # Buscar la hora
+                        time_match = re.search(time_pattern, paragraph_text)
+                        if time_match:
+                            time = time_match.group(1)
+                        else:
+                            time = "No especificada"
+
+                        # Buscar el lugar
+                        place_match = re.search(place_pattern, paragraph_text)
+                        if place_match:
+                            place = place_match.group(1).strip()
+                        else:
+                            place = "No especificado"
+
+                        # print(f"Detalles extraídos: Fecha: {date}, Hora: {time}, Lugar: {place}")
+
+                        # Almacenar detalles extraídos
+                        extracted_details.append({
+                            "date": date,
+                            "time": time,
+                            "place": place
+                        })
+
+        if not extracted_details:
+            print("No se encontraron detalles completos en el archivo PDF.")
+            return jsonify({'error': 'No se encontraron detalles en el archivo PDF'}), 200
+
+        return jsonify({'message': 'Fechas y detalles extraídos con éxito', 'details': extracted_details}), 200
+
+    except Exception as e:
+        print(f"Error inesperado: {str(e)}")
+        return jsonify({'error': f'Error al procesar el archivo: {str(e)}'}), 500

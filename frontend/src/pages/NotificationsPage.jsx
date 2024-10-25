@@ -19,6 +19,8 @@ import SendEmailService from '../services/email/SendEmailService';
 import MoveFileService from '../services/email/MoveFileService';
 import CheckDatabaseService from '../services/item_management/CheckDataService';
 import SessionExpiredService from '../services/authentication/SesionExpiredService';
+import GetTrialFromPDFService from '../services/email/GetTrialFromPDFService';
+import AddTrialToUserService from '../services/email/AddTrialToUserService';
 import { useToast } from '../context/ToastProvider';
 
 const NotificationsPage = () => {
@@ -221,6 +223,22 @@ const NotificationsPage = () => {
 
                     if (response.success) {
                         console.log(response.data.message);
+
+                        // Extraer datos del juicio (si los hay)
+                        const getTrial = await GetTrialFromPDFService(emailData.filePath);
+
+                        if(getTrial.data.details){
+                            
+                            // Añadir datos del juicio al usuario
+                            const addTrialResponse = await AddTrialToUserService(getTrial.data.details[0]);
+        
+                            if (!addTrialResponse.success) {
+                                errorCount++;
+                                fileErrors.push(`Error al añadir el juicio para el archivo ${fileName}: ${addTrialResponse.error}`);
+                                console.error(`Error al añadir el juicio para el archivo ${fileName}:`, addTrialResponse.error);
+                            }
+                        }
+
                         const response2 = await MoveFileService(emailData.filePath, emailData.targetDirectory);
 
                         // Sesión expirada
@@ -526,6 +544,22 @@ const NotificationsPage = () => {
 
                 if (response.success) {
                     console.log(response.data.message);
+
+                    // Extraer datos del juicio (si los hay)
+                    const getTrial = await GetTrialFromPDFService(emailData.filePath);
+
+                    if(getTrial.data.details){
+                        
+                        // Añadir datos del juicio al usuario
+                        const addTrialResponse = await AddTrialToUserService(getTrial.data.details[0]);
+    
+                        if (!addTrialResponse.success) {
+                            errorCount++;
+                            fileErrors.push(`Error al añadir el juicio para el archivo ${emailData.fileName}: ${addTrialResponse.error}`);
+                            console.error(`Error al añadir el juicio para el archivo ${emailData.fileName}:`, addTrialResponse.error);
+                        }
+                    }
+
                     const response2 = await MoveFileService(emailData.filePath, emailData.targetDirectory);
 
                     // Sesión expirada

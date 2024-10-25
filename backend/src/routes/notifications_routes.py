@@ -9,6 +9,7 @@ from services.notifications_services import (
     createFoldersService,
     sendEmailService,
     moveFileService,
+    extractDateFromPDFService,
 )
 
 # Crear un Blueprint para manejar las rutas de notificaciones
@@ -74,3 +75,10 @@ def moveFile():
     file_path = data.get('file_path')
     target_directory = data.get('target_directory')
     return moveFileService(file_path, target_directory)
+
+@notifications.route('/extract_date', methods=['POST'])
+@jwt_required()
+def extract():
+    data = request.json
+    file_path = data.get('file_path')
+    return extractDateFromPDFService(file_path)

@@ -52,6 +52,15 @@ def getAllUsersService():
         if 'localPath' in user and user['localPath']:
             user['localPath'] = aes_encryption_service.decrypt_data(user['localPath'])
 
+        # Desencriptar cada juicio en la lista 'trials'
+        if 'trials' in user and isinstance(user['trials'], list):
+            for trial in user['trials']:
+                if isinstance(trial, dict):
+                    trial['date'] = aes_encryption_service.decrypt_data(trial['date'])
+                    trial['time'] = aes_encryption_service.decrypt_data(trial['time'])
+                    trial['place'] = aes_encryption_service.decrypt_data(trial['place'])
+
+
         users.append({
             '_id': str(ObjectId(user['_id'])),
             'name': user['name'],
@@ -63,7 +72,8 @@ def getAllUsersService():
             'address': user.get('address', ''),
             'postalCode': user.get('postalCode', ''),
             'city': user.get('city', ''),
-            'localPath': user.get('localPath', '')
+            'localPath': user.get('localPath', ''),
+            'trials': user.get('trials', [])
         })
     if users:
         return jsonify(users)
@@ -90,6 +100,14 @@ def getUserService(id):
             user['city'] = aes_encryption_service.decrypt_data(user['city'])
         if 'localPath' in user and user['localPath']:
             user['localPath'] = aes_encryption_service.decrypt_data(user['localPath'])
+            
+        # Desencriptar cada juicio en la lista 'trials'
+        if 'trials' in user and isinstance(user['trials'], list):
+            for trial in user['trials']:
+                if isinstance(trial, dict):
+                    trial['date'] = aes_encryption_service.decrypt_data(trial['date'])
+                    trial['time'] = aes_encryption_service.decrypt_data(trial['time'])
+                    trial['place'] = aes_encryption_service.decrypt_data(trial['place'])
 
         return jsonify({
             '_id': str(user['_id']),
@@ -102,7 +120,8 @@ def getUserService(id):
             'address': user.get('address', ''),
             'postalCode': user.get('postalCode', ''),
             'city': user.get('city', ''),
-            'localPath': user.get('localPath', '')
+            'localPath': user.get('localPath', ''),
+            'trials': user.get('trials', [])
         })
     else:
         return jsonify({'error': f'Usuario {id} no encontrado'}), 404
@@ -126,6 +145,9 @@ def createUserService():
     try:
         # Cifrar la contraseña antes de guardar
         data['password'] = hashing_service.hash_data(data['password'])
+
+        # Establecer el campo 'trials' como una lista vacía
+        data['trials'] = []
 
         # Insertar el nuevo usuario en la base de datos
         user_id = g.db.users.insert_one(data).inserted_id
@@ -239,3 +261,39 @@ def loginUserService():
         # La contraseña es incorrecta
         print('contraseña incorrecta')
         return jsonify({'error': 'La contraseña es incorrecta'}), 400
+    
+# Añadir un juicio a un usuario dado su id
+@handle_error
+def addTrialToUserService(id):
+    data = request.json
+
+    print("Datoooooos:", data)
+
+    # Verificar que los datos de juicio estén presentes
+    required_fields = ['date', 'time', 'place']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Falta el campo requerido: {field}'}), 400
+
+    # Verificar que el usuario exista
+    user = g.db.users.find_one({'_id': ObjectId(id)})
+    if not user:
+        return jsonify({'error': f'Usuario {id} no encontrado'}), 404
+
+    # Cifrar cada campo de juicio
+    new_trial = {
+        "date": aes_encryption_service.encrypt_data(data['date']),
+        "time": aes_encryption_service.encrypt_data(data['time']),
+        "place": aes_encryption_service.encrypt_data(data['place'])
+    }
+
+    # Actualizar el usuario en la base de datos añadiendo el nuevo juicio a 'trials'
+    result = g.db.users.update_one(
+        {'_id': ObjectId(id)},
+        {'$push': {'trials': new_trial}}
+    )
+
+    if result.modified_count == 1:
+        return jsonify({'message': f'Juicio añadido correctamente al usuario {id}'}), 200
+    else:
+        return jsonify({'error': 'No se pudo añadir el juicio'}), 500

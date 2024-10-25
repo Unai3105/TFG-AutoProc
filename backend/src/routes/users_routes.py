@@ -10,7 +10,8 @@ from services.users_services import (
     createUserService,
     updateUserService,
     deleteUserService,
-    loginUserService
+    loginUserService,
+    addTrialToUserService
 )
 
 # Cargar variables de entorno
@@ -72,3 +73,9 @@ def deleteUser(id):
 @require_api_key
 def loginUser():
     return loginUserService()
+
+# Definir la ruta para añadir un juicio a un usuario dado su id
+@users.route('/<id>/add_trial', methods=['POST'])
+@require_api_key
+def add_trial(id):
+    return addTrialToUserService(id)
