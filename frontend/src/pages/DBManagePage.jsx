@@ -11,12 +11,13 @@ const DBManagePage = () => {
         <div>
             <NavBar />
             <div style={{
-                position: 'fixed', // Fija el contenedor
+                position: 'absolute', // Fija el contenedor
                 top: 75, // Deja espacio debajo del NavBar
                 left: '50%', // Mueve el contenedor al centro de la pantalla
                 transform: 'translateX(-50%)', // Centra el contenedor horizontalmente
                 minWidth: '900px', // Establece el ancho mínimo
                 maxWidth: '100%', // Establece el ancho máximo
+                overflowY: 'auto'
             }}>
                 <TabView activeIndex={activeIndex} onTabChange={(event) => setActiveIndex(event.index)}>
                     <TabPanel

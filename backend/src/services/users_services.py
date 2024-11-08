@@ -266,9 +266,7 @@ def loginUserService():
 @handle_error
 def addTrialToUserService(id):
     data = request.json
-
-    print("Datoooooos:", data)
-
+    
     # Verificar que los datos de juicio estén presentes
     required_fields = ['date', 'time', 'place']
     for field in required_fields:

@@ -2,9 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Timeline } from 'primereact/timeline';
 import { Card } from 'primereact/card';
 
-const TimelineExample = () => {
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [visible, setVisible] = useState(Array(5).fill(false)); // Array to track visibility of each card
+import GetUserService from '../../services/authentication/GetUserService';
+import CheckDataService from '../../services/item_management/CheckDataService';
+
+const AnimatedTimeLineComponent = () => {
+    const [completedSteps, setCompletedSteps] = useState([]);
+    const [visible, setVisible] = useState(Array(5).fill(false));
     const cardRefs = useRef([]);
 
     const events = [
@@ -34,6 +37,55 @@ const TimelineExample = () => {
             content: 'Cargue la base de datos de casos en formato .json o .xlsx. La base de datos debe incluir los siguientes atributos: cliente, expediente, letrado, dado en fecha, pago, nig.'
         },
     ];
+
+
+    // UseEffect para construir el array de pasos completados
+    useEffect(() => {
+        const checkCompletedSteps = async () => {
+            let steps = [];
+
+            // Verificar los pasos 1, 2 y 3 (datos del perfil)
+            const userResponse = await GetUserService();
+
+            if (userResponse.success) {
+                const userData = userResponse.data;
+                
+                // Paso 1: Verificar que los campos phone, address, postalCode y city tengan algún valor
+                if (userData.phone && userData.address && userData.postalCode && userData.city) {
+                    steps.push(0);
+                }
+
+                // Paso 2: Verificar que el campo emailPassword tenga algún valor
+                if (userData.emailPassword) {
+                    steps.push(1);
+                }
+
+                // Paso 3: Verificar que el campo localPath tenga algún valor
+                if (userData.localPath) {
+                    steps.push(2);
+                }
+            }
+
+            // Verificar el paso 4 (base de datos de abogados)
+            const abogadosResponse = await CheckDataService('lawyers');
+            if (abogadosResponse.success && abogadosResponse.hasData) {
+                steps.push(3);
+            }
+
+            // Verificar el paso 5 (base de datos de casos)
+            const casosResponse = await CheckDataService('cases');
+            if (casosResponse.success && casosResponse.hasData) {
+                steps.push(4);
+            }
+
+            // Actualizar el estado con los pasos completados
+            setCompletedSteps(steps);
+
+            console.log(completedSteps)
+        };
+
+        checkCompletedSteps();
+    }, []);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -67,17 +119,10 @@ const TimelineExample = () => {
         };
     }, []);
 
-    useEffect(() => {
-        if (activeIndex < events.length) {
-            const timer = setTimeout(() => {
-                setActiveIndex(activeIndex + 1);
-            }, 2000);
-            return () => clearTimeout(timer);
-        }
-    }, [activeIndex]);
-
     const customizedMarker = (item, index) => {
-        const isActive = index <= activeIndex;
+
+        const isActive = completedSteps.includes(index);
+
         return (
             <span
                 style={{
@@ -174,4 +219,4 @@ const TimelineExample = () => {
     );
 };
 
-export default TimelineExample;
+export default AnimatedTimeLineComponent;
