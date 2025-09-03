@@ -5,5 +5,5 @@
 
 📌 Poster del proyecto:
 <p align="left">
-  <img src="./AutoProc - Unai Roa - TFG.png" alt="Poster del proyecto" width="400">
+  <img src="./AutoProc - Unai Roa - TFG.png" alt="Poster del proyecto" width="450">
 </p>
